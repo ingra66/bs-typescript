@@ -126,6 +126,8 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($products as $product) {
+            // Generar slug automáticamente basado en el nombre
+            $product['slug'] = \Illuminate\Support\Str::slug($product['name']);
             Product::create($product);
         }
 

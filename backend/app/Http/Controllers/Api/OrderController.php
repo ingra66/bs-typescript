@@ -337,4 +337,80 @@ class OrderController extends Controller
             'data' => $stats,
         ]);
     }
+
+    /**
+     * Admin: Display all orders
+     */
+    public function adminIndex(Request $request): JsonResponse
+    {
+        $query = Order::with(['user', 'items.product']);
+
+        // Filtros
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('payment_status')) {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        // Ordenamiento
+        $orderBy = $request->get('order_by', 'created_at');
+        $orderDirection = $request->get('order_direction', 'desc');
+        $query->orderBy($orderBy, $orderDirection);
+
+        // Paginación
+        $perPage = $request->get('per_page', 15);
+        $orders = $query->paginate($perPage);
+
+        return response()->json([
+            'success' => true,
+            'data' => $orders->items(),
+            'pagination' => [
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Admin: Display the specified order
+     */
+    public function adminShow(Order $order): JsonResponse
+    {
+        $order->load(['user', 'items.product.category']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $order,
+        ]);
+    }
+
+    /**
+     * Admin: Update order status
+     */
+    public function updateStatus(Request $request, Order $order): JsonResponse
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:pending,paid,shipped,delivered,cancelled',
+            'tracking_number' => 'nullable|string',
+        ]);
+
+        $order->update([
+            'status' => $validated['status'],
+            'notes' => $order->notes . "\n" . now()->format('Y-m-d H:i:s') . " - Estado actualizado a: {$validated['status']}",
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Estado de la orden actualizado',
+            'data' => $order->fresh(),
+        ]);
+    }
 } 

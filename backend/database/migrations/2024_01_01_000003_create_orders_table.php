@@ -24,6 +24,7 @@ return new class extends Migration
             $table->json('billing_address');
             $table->text('notes')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

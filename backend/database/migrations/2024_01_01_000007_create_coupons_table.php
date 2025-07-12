@@ -24,6 +24,7 @@ return new class extends Migration
             $table->json('applicable_categories')->nullable(); // Categorías específicas
             $table->json('excluded_products')->nullable(); // Productos excluidos
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
