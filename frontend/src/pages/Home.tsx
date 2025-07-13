@@ -4,6 +4,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Hero } from '@/components/home/Hero';
 import { CategoryGrid } from '@/components/categories/CategoryGrid';
 import { ProductGrid } from '@/components/products/ProductGrid';
+import { ProductCarousel } from '@/components/products/ProductCarousel';
 import type { Product } from '@/components/products/ProductCard';
 import type { Category } from '@/components/categories/CategoryCard';
 
@@ -43,13 +44,16 @@ export const Home: React.FC = () => {
     <div className="app">
       <Header />
       <Hero />
-      <CategoryGrid categories={categories} onCategoryClick={handleCategoryClick} loading={loading} />
-      <ProductGrid
-        products={products}
+      <CategoryGrid categories={categories as any} onCategoryClick={handleCategoryClick as any} loading={loading} />
+      <ProductCarousel
+        products={products.map(p => ({
+          ...p,
+          brand: (p as any).brand || '',
+          name: p.name,
+          price: p.price,
+          image: (p as any).image || '/placeholder.svg',
+        }))}
         title="Productos Destacados"
-        subtitle="Los productos más populares y mejor valorados por nuestros clientes"
-        onProductClick={handleProductClick}
-        loading={loading}
       />
       <Footer />
     </div>

@@ -5,9 +5,12 @@ import App from "./App.tsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles.css";
 import './global.css';
+import { BrowserRouter } from 'react-router-dom';
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>
 );
