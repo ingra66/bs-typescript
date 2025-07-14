@@ -69,6 +69,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('/', [CartController::class, 'clear']);
             Route::get('/summary', [CartController::class, 'summary']);
             Route::post('/validate', [CartController::class, 'validate']);
+            Route::post('/sync', [CartController::class, 'sync']);
         });
         
         // Órdenes

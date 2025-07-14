@@ -1,12 +1,11 @@
 import React from 'react';
-import { ProductCard } from './ProductCard';
-import type { Product } from './ProductCard';
+import ProductCard from './ProductCard';
+import type { Product } from '../../types/product';
 
 interface ProductGridProps {
   products: Product[];
   title?: string;
   subtitle?: string;
-  onProductClick?: (product: Product) => void;
   loading?: boolean;
 }
 
@@ -14,7 +13,6 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   products,
   title,
   subtitle,
-  onProductClick,
   loading = false
 }) => {
   if (loading) {
@@ -96,7 +94,6 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
               <ProductCard
                 key={product.id}
                 product={product}
-                onProductClick={onProductClick}
               />
             ))}
           </div>

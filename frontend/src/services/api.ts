@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import type { AuthResponse, LoginRequest, RegisterRequest } from '@/types/auth';
+
 import { apiConfig } from '@/config/api';
 
 // Crear instancia de axios

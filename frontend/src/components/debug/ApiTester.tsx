@@ -3,7 +3,7 @@ import { testApiConnection, testBackendHealth } from '@/utils/apiTest';
 import { checkBackendStatus, testAuthEndpoints } from '@/utils/backendCheck';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Wifi, WifiOff, CheckCircle, XCircle, Loader, Database, Shield } from 'lucide-react';
+import { Wifi, CheckCircle, XCircle, Loader, Database, Shield } from 'lucide-react';
 
 export const ApiTester: React.FC = () => {
   const [isTesting, setIsTesting] = useState(false);

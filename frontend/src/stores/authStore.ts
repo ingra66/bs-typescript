@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { authService } from '@/services/authService';
 import type { AuthStore, LoginRequest, RegisterRequest, User } from '@/types/auth';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+
 
 // Hook para navegación fuera de componentes
 let navigate: (path: string) => void = () => {};
@@ -10,7 +10,7 @@ export const setNavigate = (navFn: (path: string) => void) => {
   navigate = navFn;
 };
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
+export const useAuthStore = create<AuthStore>((set) => ({
   user: authService.getUser(),
   token: authService.getToken(),
   isAuthenticated: !!authService.getToken(),

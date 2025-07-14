@@ -1,32 +1,42 @@
-import React from 'react';
+
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { Home } from '@/pages/Home';
-import { ProductPage } from '@/pages/ProductPage';
-import { Login } from '@/pages/Login';
-import { Register } from '@/pages/Register';
-import { Profile } from '@/pages/Profile';
-import { ApiTester } from '@/components/debug/ApiTester';
-import { AdminDashboard } from '@/pages/AdminDashboard';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
+import { Header } from './components/layout/Header';
+import { Footer } from './components/layout/Footer';
+import { Home } from './pages/Home';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { Profile } from './pages/Profile';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { ProductPage } from './pages/ProductPage';
+import CartPage from './pages/CartPage';
+import CartSync from './components/cart/CartSync';
+import CartDebug from './components/cart/CartDebug';
 
 function App() {
+
   return (
-    <div className="App" style={{ background: '#000', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Header />
-      <div style={{ flex: 1 }}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/producto/:id" element={<ProductPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/debug/api" element={<ApiTester />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-        </Routes>
+    <>
+      <div className="min-h-screen bg-gray-900 flex flex-col">
+        <CartSync />
+        <Header />
+        <CartDebug />
+    
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/product/:id" element={<ProductPage />} />
+            <Route path="/cart" element={<CartPage />} />
+          </Routes>
+        </main>
+    
+        <Footer />
       </div>
-      <Footer />
+    
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -37,20 +47,20 @@ function App() {
             border: '1px solid #374151',
           },
           success: {
-            iconTheme: {
-              primary: '#10b981',
-              secondary: '#fff',
+            style: {
+              background: '#065f46',
+              border: '1px solid #047857',
             },
           },
           error: {
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
+            style: {
+              background: '#7f1d1d',
+              border: '1px solid #dc2626',
             },
           },
         }}
       />
-    </div>
+    </>
   );
 }
 

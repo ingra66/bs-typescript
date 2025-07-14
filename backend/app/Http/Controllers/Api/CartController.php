@@ -245,4 +245,63 @@ class CartController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Sync local cart with backend
+     */
+    public function sync(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|integer|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        // Limpiar carrito actual
+        CartItem::where('user_id', Auth::id())->delete();
+
+        $syncedItems = [];
+
+        foreach ($validated['items'] as $item) {
+            $product = Product::findOrFail($item['id']);
+
+            // Verificar stock
+            if (!$product->isInStock()) {
+                continue; // Saltar productos sin stock
+            }
+
+            $quantity = min($item['quantity'], $product->stock); // No exceder stock
+
+            if ($quantity > 0) {
+                $cartItem = CartItem::create([
+                    'user_id' => Auth::id(),
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                ]);
+
+                $cartItem->load(['product' => function ($query) {
+                    $query->with(['category', 'variants']);
+                }]);
+
+                $syncedItems[] = $cartItem;
+            }
+        }
+
+        $subtotal = collect($syncedItems)->sum(function ($item) {
+            return $item->subtotal;
+        });
+
+        $totalItems = collect($syncedItems)->sum('quantity');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Carrito sincronizado',
+            'data' => [
+                'items' => $syncedItems,
+                'subtotal' => $subtotal,
+                'formatted_subtotal' => '$' . number_format($subtotal, 2),
+                'total_items' => $totalItems,
+            ],
+        ]);
+    }
 } 

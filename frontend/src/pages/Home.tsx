@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Hero } from '@/components/home/Hero';
 import { CategoryGrid } from '@/components/categories/CategoryGrid';
-import { ProductGrid } from '@/components/products/ProductGrid';
 import { ProductCarousel } from '@/components/products/ProductCarousel';
-import type { Product } from '@/components/products/ProductCard';
-import type { Category } from '@/components/categories/CategoryCard';
+import { ProductGrid } from '@/components/products/ProductGrid';
+import type { Product } from '@/types/product';
+import type { Category } from '@/types/product';
 
 export const Home: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -30,10 +30,6 @@ export const Home: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleProductClick = (product: Product) => {
-    console.log('Producto clickeado:', product.name);
-  };
-
   const handleCategoryClick = (category: Category) => {
     console.log('Categoría clickeada:', category.name);
   };
@@ -51,6 +47,12 @@ export const Home: React.FC = () => {
           image: (p as any).image || '/placeholder.svg',
         }))}
         title="Productos Destacados"
+      />
+      {/* Nuevo: ProductGrid debajo del carrusel */}
+      <ProductGrid
+        products={products}
+        title="Todos los productos"
+        loading={loading}
       />
     </div>
   );
