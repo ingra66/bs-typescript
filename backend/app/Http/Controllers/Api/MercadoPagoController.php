@@ -4,23 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\MercadoPagoService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use MercadoPago\Client\Preference\PreferenceClient;
-use MercadoPago\MercadoPagoConfig;
-use MercadoPago\Exceptions\MPApiException;
 
 class MercadoPagoController extends Controller
 {
-    public function __construct()
+    private $mercadoPagoService;
+
+    public function __construct(MercadoPagoService $mercadoPagoService)
     {
-        // Configurar MercadoPago
-        MercadoPagoConfig::setAccessToken(config('services.mercadopago.access_token'));
-        
-        // Configurar ambiente (sandbox/production)
-        $environment = config('services.mercadopago.environment', 'sandbox');
-        MercadoPagoConfig::setEnvironment($environment);
+        $this->mercadoPagoService = $mercadoPagoService;
     }
 
     /**
@@ -51,65 +46,23 @@ class MercadoPagoController extends Controller
             ], 422);
         }
 
-        try {
-            $client = new PreferenceClient();
+        $result = $this->mercadoPagoService->createPreference($order);
 
-            // Crear items para MercadoPago
-            $items = [];
-            foreach ($order->items as $item) {
-                $items[] = [
-                    'title' => $item->product_name,
-                    'quantity' => $item->quantity,
-                    'unit_price' => (float) $item->unit_price,
-                    'currency_id' => 'ARS', // O configurar según país
-                ];
-            }
-
-            // Agregar envío si existe
-            if ($order->shipping_amount > 0) {
-                $items[] = [
-                    'title' => 'Envío',
-                    'quantity' => 1,
-                    'unit_price' => (float) $order->shipping_amount,
-                    'currency_id' => 'ARS',
-                ];
-            }
-
-            // Crear preferencia
-            $preference = $client->create([
-                'items' => $items,
-                'external_reference' => $order->order_number,
-                'notification_url' => config('services.mercadopago.notification_url'),
-                'back_urls' => config('services.mercadopago.back_urls'),
-                'auto_return' => 'approved',
-                'expires' => true,
-                'expiration_date_to' => now()->addHours(24)->toISOString(),
-                'payer' => [
-                    'name' => $order->shipping_address['name'] ?? 'Cliente',
-                    'email' => Auth::user()->email,
-                ],
-            ]);
-
-            // Actualizar orden con el ID de preferencia
-            $order->update([
-                'mp_preference_id' => $preference->id,
-            ]);
-
+        if ($result['success']) {
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'preference_id' => $preference->id,
-                    'init_point' => $preference->init_point,
-                    'sandbox_init_point' => $preference->sandbox_init_point,
+                    'preference_id' => $result['preference_id'],
+                    'init_point' => $result['init_point'],
+                    'sandbox_init_point' => $result['sandbox_init_point'],
                     'order' => $order,
                 ],
             ]);
-
-        } catch (MPApiException $e) {
+        } else {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear preferencia de pago',
-                'error' => $e->getMessage(),
+                'error' => $result['error'],
             ], 500);
         }
     }
@@ -125,16 +78,10 @@ class MercadoPagoController extends Controller
 
             if ($type === 'payment') {
                 $paymentId = $data['id'];
+                $result = $this->mercadoPagoService->processPaymentNotification($paymentId);
                 
-                // Obtener información del pago
-                $client = new \MercadoPago\Client\Payment\PaymentClient();
-                $payment = $client->get($paymentId);
-
-                // Buscar orden por external_reference
-                $order = Order::where('order_number', $payment->external_reference)->first();
-
-                if ($order) {
-                    $this->processPayment($order, $payment);
+                if (!$result['success']) {
+                    \Log::error('MercadoPago Webhook Error: ' . $result['error']);
                 }
             }
 
@@ -150,72 +97,7 @@ class MercadoPagoController extends Controller
         }
     }
 
-    /**
-     * Process payment notification
-     */
-    private function processPayment(Order $order, $payment): void
-    {
-        $status = $payment->status;
-        $paymentMethod = $payment->payment_method_id ?? 'unknown';
 
-        // Actualizar orden según el estado del pago
-        switch ($status) {
-            case 'approved':
-                $order->update([
-                    'payment_status' => Order::PAYMENT_STATUS_PAID,
-                    'status' => Order::STATUS_PAID,
-                    'mp_payment_id' => $payment->id,
-                    'payment_method' => $paymentMethod,
-                ]);
-
-                // Crear notificación
-                $this->createPaymentNotification($order, 'Pago recibido exitosamente');
-                break;
-
-            case 'pending':
-                $order->update([
-                    'payment_status' => Order::PAYMENT_STATUS_PENDING,
-                    'mp_payment_id' => $payment->id,
-                    'payment_method' => $paymentMethod,
-                ]);
-
-                $this->createPaymentNotification($order, 'Pago pendiente de confirmación');
-                break;
-
-            case 'rejected':
-            case 'cancelled':
-                $order->update([
-                    'payment_status' => Order::PAYMENT_STATUS_FAILED,
-                    'mp_payment_id' => $payment->id,
-                    'payment_method' => $paymentMethod,
-                ]);
-
-                $this->createPaymentNotification($order, 'Pago rechazado o cancelado');
-                break;
-        }
-    }
-
-    /**
-     * Create payment notification
-     */
-    private function createPaymentNotification(Order $order, string $message): void
-    {
-        // Aquí puedes crear una notificación para el usuario
-        // usando el modelo Notification que creamos
-        \App\Models\Notification::create([
-            'user_id' => $order->user_id,
-            'type' => 'payment_received',
-            'title' => 'Actualización de Pago',
-            'message' => $message,
-            'data' => [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'amount' => $order->total_amount,
-            ],
-            'action_url' => config('app.frontend_url') . '/orders/' . $order->id,
-            'action_text' => 'Ver Orden',
-        ]);
-    }
 
     /**
      * Get payment status
@@ -236,10 +118,10 @@ class MercadoPagoController extends Controller
             ], 404);
         }
 
-        try {
-            $client = new \MercadoPago\Client\Payment\PaymentClient();
-            $payment = $client->get($order->mp_payment_id);
+        $result = $this->mercadoPagoService->getPayment($order->mp_payment_id);
 
+        if ($result['success']) {
+            $payment = $result['payment'];
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -250,12 +132,11 @@ class MercadoPagoController extends Controller
                     'order_payment_status' => $order->payment_status,
                 ],
             ]);
-
-        } catch (MPApiException $e) {
+        } else {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener estado del pago',
-                'error' => $e->getMessage(),
+                'error' => $result['error'],
             ], 500);
         }
     }
@@ -265,20 +146,18 @@ class MercadoPagoController extends Controller
      */
     public function getPaymentMethods(): JsonResponse
     {
-        try {
-            $client = new \MercadoPago\Client\PaymentMethod\PaymentMethodClient();
-            $paymentMethods = $client->list();
+        $result = $this->mercadoPagoService->getPaymentMethods();
 
+        if ($result['success']) {
             return response()->json([
                 'success' => true,
-                'data' => $paymentMethods,
+                'data' => $result['data'],
             ]);
-
-        } catch (MPApiException $e) {
+        } else {
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener métodos de pago',
-                'error' => $e->getMessage(),
+                'error' => $result['error'],
             ], 500);
         }
     }
