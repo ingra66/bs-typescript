@@ -5,12 +5,23 @@ import App from "./App.tsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles.css";
 import './global.css';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useNavigate } from 'react-router-dom';
+import { AuthInitializer } from './components/auth/AuthInitializer';
+import { setNavigate } from './stores/authStore';
+
+function NavigationSetter() {
+  const navigate = useNavigate();
+  setNavigate(navigate);
+  return null;
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <NavigationSetter />
+      <AuthInitializer>
+        <App />
+      </AuthInitializer>
     </BrowserRouter>
   </StrictMode>
 );

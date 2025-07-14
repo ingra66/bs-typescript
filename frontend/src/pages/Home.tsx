@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { Hero } from '@/components/home/Hero';
 import { CategoryGrid } from '@/components/categories/CategoryGrid';
 import { ProductGrid } from '@/components/products/ProductGrid';
@@ -41,8 +39,7 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className="app">
-      <Header />
+    <div className="home-content">
       <Hero />
       <CategoryGrid categories={categories as any} onCategoryClick={handleCategoryClick as any} loading={loading} />
       <ProductCarousel
@@ -55,7 +52,6 @@ export const Home: React.FC = () => {
         }))}
         title="Productos Destacados"
       />
-      <Footer />
     </div>
   );
 }; 
