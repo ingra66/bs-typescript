@@ -10,6 +10,10 @@ import { Profile } from './pages/Profile';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ProductPage } from './pages/ProductPage';
 import CartPage from './pages/CartPage';
+import Checkout from './pages/Checkout';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFailure from './pages/PaymentFailure';
+import PaymentPending from './pages/PaymentPending';
 import CartSync from './components/cart/CartSync';
 import CartDebug from './components/cart/CartDebug';
 
@@ -31,6 +35,10 @@ function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
+            <Route path="/payment/failure" element={<PaymentFailure />} />
+            <Route path="/payment/pending" element={<PaymentPending />} />
           </Routes>
         </main>
     

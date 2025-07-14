@@ -17,6 +17,10 @@ class MercadoPagoController extends Controller
     {
         // Configurar MercadoPago
         MercadoPagoConfig::setAccessToken(config('services.mercadopago.access_token'));
+        
+        // Configurar ambiente (sandbox/production)
+        $environment = config('services.mercadopago.environment', 'sandbox');
+        MercadoPagoConfig::setEnvironment($environment);
     }
 
     /**
@@ -75,12 +79,8 @@ class MercadoPagoController extends Controller
             $preference = $client->create([
                 'items' => $items,
                 'external_reference' => $order->order_number,
-                'notification_url' => route('api.mercadopago.webhook'),
-                'back_urls' => [
-                    'success' => config('app.frontend_url') . '/payment/success',
-                    'failure' => config('app.frontend_url') . '/payment/failure',
-                    'pending' => config('app.frontend_url') . '/payment/pending',
-                ],
+                'notification_url' => config('services.mercadopago.notification_url'),
+                'back_urls' => config('services.mercadopago.back_urls'),
                 'auto_return' => 'approved',
                 'expires' => true,
                 'expiration_date_to' => now()->addHours(24)->toISOString(),
