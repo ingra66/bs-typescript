@@ -15,7 +15,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailure from './pages/PaymentFailure';
 import PaymentPending from './pages/PaymentPending';
 import CartSync from './components/cart/CartSync';
-import CartDebug from './components/cart/CartDebug';
+// import CartDebug from './components/cart/CartDebug';
 
 function App() {
 
@@ -24,7 +24,7 @@ function App() {
       <div className="min-h-screen bg-gray-900 flex flex-col">
         <CartSync />
         <Header />
-        <CartDebug />
+        {/* <CartDebug /> */}
     
         <main className="flex-1">
           <Routes>

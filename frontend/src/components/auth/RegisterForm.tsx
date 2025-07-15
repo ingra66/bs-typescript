@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Shield, CheckCircle } from 'lucide-react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+interface RegisterFormData {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
 
 export const RegisterForm: React.FC = () => {
   const navigate = useNavigate();
   const { register, isLoading, isAuthenticated, user } = useAuthStore();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterFormData>({
     name: '',
     email: '',
     password: '',
@@ -70,13 +76,12 @@ export const RegisterForm: React.FC = () => {
 
     try {
       await register(formData);
-      // La redirección ahora se maneja en useEffect
     } catch (error) {
       // El error ya se maneja en el store
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -92,173 +97,313 @@ export const RegisterForm: React.FC = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-white">
-            Crear Cuenta
-          </h2>
-          <p className="mt-2 text-sm text-gray-400">
-            Únete a BeltSpot y descubre productos increíbles
-          </p>
-        </div>
+  const getPasswordStrength = (password: string) => {
+    if (!password) return { strength: 0, color: 'bg-secondary', text: '' };
+    
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/\d/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    
+    const colors = ['bg-danger', 'bg-warning', 'bg-info', 'bg-primary', 'bg-success'];
+    const texts = ['Muy débil', 'Débil', 'Media', 'Fuerte', 'Muy fuerte'];
+    
+    return {
+      strength: Math.min(strength, 5),
+      color: colors[Math.min(strength - 1, 4)],
+      text: texts[Math.min(strength - 1, 4)]
+    };
+  };
 
-        <Card className="p-8 bg-gray-800 border-gray-700">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-                Nombre Completo
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+  const passwordStrength = getPasswordStrength(formData.password);
+
+  // Estilos CSS para centrar el formulario
+  const registerStyles = {
+    container: {
+      height: '100vh',
+      overflow: 'hidden',
+      position: 'relative' as const,
+    },
+    formColumn: {
+      backgroundColor: '#000000',
+      height: '100vh',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      paddingTop: '15vh',
+      position: 'relative' as const,
+    },
+    imageColumn: {
+      height: '100vh',
+      display: 'flex',
+    },
+    formBox: {
+      maxWidth: '320px',
+      padding: '1rem',
+      borderRadius: '8px',
+    },
+    logo: {
+      marginBottom: '1rem',
+    },
+    title: {
+      fontSize: '1.25rem',
+      fontWeight: 700,
+      marginBottom: '0.5rem',
+    },
+    subtitle: {
+      fontSize: '0.9rem',
+      marginBottom: '1rem',
+    },
+    input: {
+      fontSize: '0.95rem',
+      padding: '8px 12px 8px 36px',
+      borderRadius: '6px',
+      marginBottom: '0.5rem',
+      backgroundColor: '#1F2937',
+      color: '#fff',
+      border: '1px solid #374151',
+    },
+    button: {
+      fontSize: '1rem',
+      padding: '10px',
+      borderRadius: '6px',
+      marginBottom: '0.5rem',
+    },
+    link: {
+      fontSize: '0.9rem',
+    }
+  };
+
+  return (
+    <div className="container-fluid p-0" style={registerStyles.container}>
+      <div className="row g-0" style={{ height: '100vh' }}>
+        {/* Left Side - Register Form */}
+        <div className="col-lg-6" style={registerStyles.formColumn}>
+          <div className="w-100" style={registerStyles.formBox}>
+            {/* Logo */}
+            <div style={registerStyles.logo}>
+              <div className="d-flex align-items-center">
+                <div className="me-2">
+                  <div className="d-flex align-items-center justify-content-center bg-gradient rounded-2 shadow-sm" 
+                       style={{ width: "32px", height: "32px", background: "linear-gradient(135deg, #DC2626 0%, #B91C1C 100%)" }}>
+                    <Shield className="text-white" size={16} />
+        </div>
                 </div>
+                <h4 className="mb-0 fw-bold text-white" style={{ fontSize: '1rem' }}>BeltSpot</h4>
+              </div>
+            </div>
+
+            {/* Welcome Text */}
+            <div style={registerStyles.title}>Crear cuenta</div>
+            <div style={registerStyles.subtitle}>Únete a nuestra comunidad</div>
+
+            {/* Register Form */}
+            <form onSubmit={handleSubmit}>
+              {/* Name Field */}
+              <div className="mb-2">
+                <label htmlFor="name" className="form-label text-white fw-medium" style={{ fontSize: '0.95rem', marginBottom: 2 }}>
+                  Nombre completo
+                </label>
+                <div className="position-relative">
                 <input
+                    type="text"
+                    className={`form-control form-control-sm ${errors.name ? 'is-invalid' : ''}`}
                   id="name"
                   name="name"
-                  type="text"
-                  autoComplete="name"
-                  required
                   value={formData.name}
-                  onChange={handleChange}
-                  className={`appearance-none relative block w-full px-3 py-2 pl-10 border ${
-                    errors.name ? 'border-red-500' : 'border-gray-600'
-                  } placeholder-gray-400 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    onChange={handleInputChange}
+                    style={registerStyles.input}
                   placeholder="Tu nombre completo"
+                    required
                 />
+                  <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-light">
+                    <User size={16} />
+                  </div>
               </div>
               {errors.name && (
-                <p className="mt-1 text-sm text-red-400">{errors.name}</p>
+                  <div className="invalid-feedback d-block" style={{ fontSize: '0.85rem' }}>{errors.name}</div>
               )}
             </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+              {/* Email Field */}
+              <div className="mb-2">
+                <label htmlFor="email" className="form-label text-white fw-medium" style={{ fontSize: '0.95rem', marginBottom: 2 }}>
                 Email
               </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
+                <div className="position-relative">
                 <input
+                    type="email"
+                    className={`form-control form-control-sm ${errors.email ? 'is-invalid' : ''}`}
                   id="email"
                   name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
                   value={formData.email}
-                  onChange={handleChange}
-                  className={`appearance-none relative block w-full px-3 py-2 pl-10 border ${
-                    errors.email ? 'border-red-500' : 'border-gray-600'
-                  } placeholder-gray-400 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    onChange={handleInputChange}
+                    style={registerStyles.input}
                   placeholder="tu@email.com"
+                    required
                 />
+                  <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-light">
+                    <Mail size={16} />
+                  </div>
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-400">{errors.email}</p>
+                  <div className="invalid-feedback d-block" style={{ fontSize: '0.85rem' }}>{errors.email}</div>
               )}
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+              {/* Password Field */}
+              <div className="mb-2">
+                <label htmlFor="password" className="form-label text-white fw-medium" style={{ fontSize: '0.95rem', marginBottom: 2 }}>
                 Contraseña
               </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
+                <div className="position-relative">
                 <input
+                    type={showPassword ? 'text' : 'password'}
+                    className={`form-control form-control-sm ${errors.password ? 'is-invalid' : ''}`}
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  required
                   value={formData.password}
-                  onChange={handleChange}
-                  className={`appearance-none relative block w-full px-3 py-2 pl-10 pr-10 border ${
-                    errors.password ? 'border-red-500' : 'border-gray-600'
-                  } placeholder-gray-400 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    onChange={handleInputChange}
+                    style={{ ...registerStyles.input, paddingLeft: 36, paddingRight: 36 }}
                   placeholder="••••••••"
+                    required
                 />
+                  <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-light">
+                    <Lock size={16} />
+                  </div>
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="position-absolute top-50 end-0 translate-middle-y me-2 border-0 bg-transparent text-light"
                   onClick={() => setShowPassword(!showPassword)}
+                    style={{ fontSize: '1rem' }}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
-                  )}
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+                
+                {/* Password strength indicator */}
+                {formData.password && (
+                  <div className="mt-1">
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <small className="text-light">Fortaleza:</small>
+                      <small className={`text-${passwordStrength.color.replace('bg-', '')}`}>{passwordStrength.text}</small>
+                    </div>
+                    <div className="progress" style={{ height: "5px" }}>
+                      <div 
+                        className={`progress-bar ${passwordStrength.color}`}
+                        style={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+                
               {errors.password && (
-                <p className="mt-1 text-sm text-red-400">{errors.password}</p>
+                  <div className="invalid-feedback d-block" style={{ fontSize: '0.85rem' }}>{errors.password}</div>
               )}
             </div>
 
-            <div>
-              <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-300">
-                Confirmar Contraseña
+              {/* Confirm Password Field */}
+              <div className="mb-3">
+                <label htmlFor="password_confirmation" className="form-label text-white fw-medium" style={{ fontSize: '0.95rem', marginBottom: 2 }}>
+                  Confirmar contraseña
               </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
+                <div className="position-relative">
                 <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    className={`form-control form-control-sm ${errors.password_confirmation ? 'is-invalid' : ''}`}
                   id="password_confirmation"
                   name="password_confirmation"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  required
                   value={formData.password_confirmation}
-                  onChange={handleChange}
-                  className={`appearance-none relative block w-full px-3 py-2 pl-10 pr-10 border ${
-                    errors.password_confirmation ? 'border-red-500' : 'border-gray-600'
-                  } placeholder-gray-400 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    onChange={handleInputChange}
+                    style={{ ...registerStyles.input, paddingLeft: 36, paddingRight: 36 }}
                   placeholder="••••••••"
+                    required
                 />
+                  <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-light">
+                    <Lock size={16} />
+                  </div>
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="position-absolute top-50 end-0 translate-middle-y me-2 border-0 bg-transparent text-light"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{ fontSize: '1rem' }}
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
-                  )}
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+                
+                {/* Password match indicator */}
+                {formData.password_confirmation && (
+                  <div className="mt-1">
+                    {formData.password === formData.password_confirmation ? (
+                      <small className="text-success d-flex align-items-center" style={{ fontSize: '0.85rem' }}>
+                        <CheckCircle size={14} className="me-1" />
+                        Las contraseñas coinciden
+                      </small>
+                    ) : (
+                      <small className="text-danger d-flex align-items-center" style={{ fontSize: '0.85rem' }}>
+                        <span className="me-1">⚠</span>
+                        Las contraseñas no coinciden
+                      </small>
+                    )}
+                  </div>
+                )}
+                
               {errors.password_confirmation && (
-                <p className="mt-1 text-sm text-red-400">{errors.password_confirmation}</p>
+                  <div className="invalid-feedback d-block" style={{ fontSize: '0.85rem' }}>{errors.password_confirmation}</div>
               )}
             </div>
 
-            <div>
-              <Button
+              {/* Sign Up Button */}
+              <button
                 type="submit"
+                className="btn btn-lg w-100 text-white fw-medium mb-2"
                 disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ ...registerStyles.button, backgroundColor: "#DC2626", border: "none" }}
               >
-                {isLoading ? 'Creando cuenta...' : 'Crear Cuenta'}
-              </Button>
+                {isLoading ? (
+                  <div className="d-flex align-items-center justify-content-center">
+                    <div className="spinner-border spinner-border-sm me-2" role="status" style={{ width: 16, height: 16 }}>
+                      <span className="visually-hidden">Cargando...</span>
+                    </div>
+                    Creando cuenta...
             </div>
+                ) : (
+                  'Crear cuenta'
+                )}
+              </button>
 
-            <div className="text-center">
-              <p className="text-sm text-gray-400">
-                ¿Ya tienes una cuenta?{' '}
-                <Link
-                  to="/login"
-                  className="font-medium text-blue-400 hover:text-blue-300"
-                >
+              {/* Sign In Link */}
+              <div className="text-center" style={registerStyles.link}>
+                <span className="text-light">¿Ya tienes una cuenta? </span>
+                <Link to="/login" className="text-decoration-none fw-medium" style={{ color: "#DC2626" }}>
                   Inicia sesión aquí
                 </Link>
-              </p>
             </div>
           </form>
-        </Card>
+          </div>
+        </div>
+
+        {/* Right Side - Pure Image */}
+        <div className="col-lg-6 d-none d-lg-flex" style={registerStyles.imageColumn}>
+          <img 
+            src="/public/3.png" 
+            alt="Cinturón rojo con piedras brillantes" 
+            className="w-100 h-100"
+            style={{
+              objectFit: 'cover',
+              objectPosition: 'center'
+            }}
+            onError={(e) => {
+              // Fallback si la imagen no carga
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.parentElement!.style.backgroundColor = '#DC2626';
+            }}
+          />
+        </div>
       </div>
     </div>
   );

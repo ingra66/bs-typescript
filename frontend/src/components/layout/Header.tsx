@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Facebook, Instagram, Search, Heart, User, Menu, X, LogOut, Settings, UserCheck } from "lucide-react";
+import { Facebook, Instagram, Search, Heart, User, Menu, X, LogOut, Settings, UserCheck, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
 import CartIcon from "@/components/ui/CartIcon";
@@ -53,161 +53,481 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="header">
-        <div className="header-inner">
-          {/* Header Top */}
-          <div className="header-top">
-            {/* Social Icons */}
-            <div className="social-icons">
-              <Facebook size={15} />
-              <Instagram size={15} />
-              <Search size={15} />
-              <ConnectionStatus />
+      <header style={{
+        backgroundColor: '#000000',
+        borderBottom: '1px solid #333',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100
+      }}>
+        {/* Top Section */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 24px',
+          maxWidth: '1400px',
+          margin: '0 auto'
+        }}>
+          {/* Left Side - Social Icons */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#1976d2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}>
+              <Facebook size={14} style={{ color: 'white' }} />
             </div>
-
-            {/* Logo */}
-            <div className="logo">
-              <Link to="/">
-                <img 
-                  src="/logo-beltspot.png" 
-                  alt="beltspot logo" 
-                  className="logo-3d-spin" 
-                />
-              </Link>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#c2185b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}>
+              <Instagram size={14} style={{ color: 'white' }} />
             </div>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#333',
+              border: '1px solid #555',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}>
+              <Search size={14} style={{ color: '#ccc' }} />
+            </div>
+            <ConnectionStatus />
+          </div>
 
-            {/* User Icons */}
-            <div className="user-icons">
-              <Heart size={15} />
-              <div className="relative">
-                <button
-                  onClick={toggleUserMenu}
-                  className="user-menu-button"
-                  aria-label="Menú de usuario"
-                >
-                  {isAuthenticated ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-white font-medium">
-                          {user?.name?.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <User size={15} />
-                  )}
-                </button>
+          {/* Center - Logo */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            position: 'relative'
+          }}>
+            <Link to="/" style={{ textDecoration: 'none' }}>
+              <img 
+                src="/logo-beltspot.png" 
+                alt="beltspot logo" 
+                style={{
+                  height: '50px',
+                  width: 'auto',
+                  animation: 'spin 20s linear infinite'
+                }}
+              />
+            </Link>
+          </div>
 
-                {/* User Menu Dropdown */}
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-50">
-                    <div className="py-1">
-                      {isAuthenticated ? (
-                        <>
-                          <div className="px-4 py-2 border-b border-gray-700">
-                            <p className="text-sm text-gray-300">Hola, {user?.name}</p>
-                            <p className="text-xs text-gray-400">{user?.email}</p>
-                          </div>
-                          <button
-                            onClick={() => handleUserAction('profile')}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
-                          >
-                            <Settings className="h-4 w-4 mr-2" />
-                            Mi Perfil
-                          </button>
-                          <button
-                            onClick={handleLogout}
-                            className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-gray-700"
-                          >
-                            <LogOut className="h-4 w-4 mr-2" />
-                            Cerrar Sesión
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => handleUserAction('login')}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
-                          >
-                            <UserCheck className="h-4 w-4 mr-2" />
-                            Iniciar Sesión
-                          </button>
-                          <Link
-                            to="/register"
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
-                          >
-                            <User className="h-4 w-4 mr-2" />
-                            Registrarse
-                          </Link>
-                        </>
-                      )}
-                    </div>
+          {/* Right Side - User Icons */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#333',
+              border: '1px solid #555',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}>
+              <Heart size={14} style={{ color: '#ccc' }} />
+            </div>
+            
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={toggleUserMenu}
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: '#333',
+                  border: '1px solid #555',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                aria-label="Menú de usuario"
+              >
+                {isAuthenticated ? (
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    backgroundColor: '#1976d2',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '10px',
+                    fontWeight: 600
+                  }}>
+                    {user?.name?.charAt(0).toUpperCase()}
                   </div>
+                ) : (
+                  <User size={14} style={{ color: '#ccc' }} />
                 )}
-              </div>
-              <CartIcon />
-            </div>
+              </button>
 
-            {/* Mobile Menu Button */}
-            <div className="mobile-menu-button">
-              {isMobileMenuOpen ? (
-                <X size={20} onClick={toggleMobileMenu} />
-              ) : (
-                <Menu size={20} onClick={toggleMobileMenu} />
+              {/* User Menu Dropdown */}
+              {isUserMenuOpen && (
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '100%',
+                  marginTop: '8px',
+                  width: '200px',
+                  backgroundColor: '#111',
+                  border: '1px solid #333',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                  zIndex: 50,
+                  overflow: 'hidden'
+                }}>
+                  <div style={{ padding: '8px 0' }}>
+                    {isAuthenticated ? (
+                      <>
+                        <div style={{
+                          padding: '12px 16px',
+                          borderBottom: '1px solid #333'
+                        }}>
+                          <p style={{
+                            fontSize: '14px',
+                            color: '#fff',
+                            margin: '0 0 4px 0',
+                            fontWeight: 500
+                          }}>
+                            Hola, {user?.name}
+                          </p>
+                          <p style={{
+                            fontSize: '12px',
+                            color: '#ccc',
+                            margin: 0
+                          }}>
+                            {user?.email}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleUserAction('profile')}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            width: '100%',
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            color: '#fff',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#333';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <Settings size={16} style={{ marginRight: '8px' }} />
+                          Mi Perfil
+                        </button>
+                        <button
+                          onClick={handleLogout}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            width: '100%',
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            color: '#ff6b6b',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#4a1a1a';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <LogOut size={16} style={{ marginRight: '8px' }} />
+                          Cerrar Sesión
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleUserAction('login')}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            width: '100%',
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            color: '#fff',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#333';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <UserCheck size={16} style={{ marginRight: '8px' }} />
+                          Iniciar Sesión
+                        </button>
+                        <Link
+                          to="/register"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            width: '100%',
+                            padding: '12px 16px',
+                            fontSize: '14px',
+                            color: '#fff',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s',
+                            textDecoration: 'none'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#333';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <User size={16} style={{ marginRight: '8px' }} />
+                          Registrarse
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
+            
+            <CartIcon />
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div style={{
+            display: 'none',
+            cursor: 'pointer',
+            padding: '8px'
+          }}>
+            {isMobileMenuOpen ? (
+              <X size={20} onClick={toggleMobileMenu} style={{ color: '#ccc' }} />
+            ) : (
+              <Menu size={20} onClick={toggleMobileMenu} style={{ color: '#ccc' }} />
+            )}
           </div>
         </div>
         
-        {/* Navigation fuera del header-inner para ancho completo */}
-        <nav className="navigation">
-          <ul className="nav-list">
-            {categories.map((cat) => (
-              <li key={cat.id} className="nav-item">
-                <a 
-                  href={`/category/${cat.slug}`} 
-                  className="nav-link"
-                >
-                  {cat.name}
-                </a>
-              </li>
-            ))}
-          </ul>
+        {/* Navigation Bar */}
+        <nav style={{
+          borderTop: '1px solid #333',
+          backgroundColor: '#000000'
+        }}>
+          <div style={{
+            maxWidth: '1400px',
+            margin: '0 auto',
+            padding: '0 24px'
+          }}>
+            <ul style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              listStyle: 'none',
+              margin: 0,
+              padding: '16px 0',
+              gap: '32px',
+              flexWrap: 'wrap'
+            }}>
+              {categories.map((cat, index) => (
+                <li key={cat.id} style={{ position: 'relative' }}>
+                  <a 
+                    href={`/category/${cat.slug}`}
+                    style={{
+                      color: '#ccc',
+                      textDecoration: 'none',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      transition: 'color 0.2s',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#ff6b6b';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = '#ccc';
+                    }}
+                  >
+                    {cat.name}
+                    <ChevronDown size={10} style={{ color: '#666' }} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </nav>
         
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
-          <div className="mobile-menu-overlay">
-            <div className="mobile-menu-close">
-              <X size={30} onClick={toggleMobileMenu} />
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            zIndex: 200,
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <div style={{
+              backgroundColor: '#000000',
+              padding: '20px',
+              borderBottom: '1px solid #333'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <img 
+                  src="/logo-beltspot.png" 
+                  alt="beltspot logo" 
+                  style={{
+                    height: '35px',
+                    width: 'auto'
+                  }}
+                />
+                <X size={24} onClick={toggleMobileMenu} style={{ color: '#ccc', cursor: 'pointer' }} />
+              </div>
             </div>
-            <div className="mobile-menu-categories">
-              {categories.map((cat) => (
-                <a 
-                  key={cat.id}
-                  href={`/category/${cat.slug}`} 
-                  onClick={toggleMobileMenu}
-                >
-                  {cat.name}
-                </a>
-              ))}
-              {/* Mobile Auth Menu */}
-              <div className="mobile-auth-menu">
+            <div style={{
+              backgroundColor: '#000000',
+              flex: 1,
+              padding: '20px'
+            }}>
+              <div style={{ marginBottom: '24px' }}>
+                {categories.map((cat) => (
+                  <a 
+                    key={cat.id}
+                    href={`/category/${cat.slug}`} 
+                    onClick={toggleMobileMenu}
+                    style={{
+                      display: 'block',
+                      padding: '12px 0',
+                      color: '#ccc',
+                      textDecoration: 'none',
+                      fontSize: '16px',
+                      borderBottom: '1px solid #333'
+                    }}
+                  >
+                    {cat.name}
+                  </a>
+                ))}
+              </div>
+              <div style={{ borderTop: '1px solid #333', paddingTop: '20px' }}>
                 {isAuthenticated ? (
                   <>
-                    <Link to="/profile" onClick={toggleMobileMenu}>
+                    <Link 
+                      to="/profile" 
+                      onClick={toggleMobileMenu}
+                      style={{
+                        display: 'block',
+                        padding: '12px 0',
+                        color: '#ccc',
+                        textDecoration: 'none',
+                        fontSize: '16px'
+                      }}
+                    >
                       Mi Perfil
                     </Link>
-                    <button onClick={() => { handleLogout(); toggleMobileMenu(); }}>
+                    <button 
+                      onClick={() => { handleLogout(); toggleMobileMenu(); }}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '12px 0',
+                        color: '#ff6b6b',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        fontSize: '16px',
+                        cursor: 'pointer'
+                      }}
+                    >
                       Cerrar Sesión
                     </button>
                   </>
                 ) : (
                   <>
-                    <Link to="/login" onClick={toggleMobileMenu}>
+                    <Link 
+                      to="/login" 
+                      onClick={toggleMobileMenu}
+                      style={{
+                        display: 'block',
+                        padding: '12px 0',
+                        color: '#ccc',
+                        textDecoration: 'none',
+                        fontSize: '16px'
+                      }}
+                    >
                       Iniciar Sesión
                     </Link>
-                    <Link to="/register" onClick={toggleMobileMenu}>
+                    <Link 
+                      to="/register" 
+                      onClick={toggleMobileMenu}
+                      style={{
+                        display: 'block',
+                        padding: '12px 0',
+                        color: '#ccc',
+                        textDecoration: 'none',
+                        fontSize: '16px'
+                      }}
+                    >
                       Registrarse
                     </Link>
                   </>
@@ -220,7 +540,14 @@ export const Header: React.FC = () => {
         {/* Overlay para cerrar el menú de usuario */}
         {isUserMenuOpen && (
           <div 
-            className="fixed inset-0 z-40"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 40
+            }}
             onClick={toggleUserMenu}
           />
         )}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Hero } from '@/components/home/Hero';
+import { BrandGrid } from '@/components/home/BrandGrid';
 import { CategoryGrid } from '@/components/categories/CategoryGrid';
 import { ProductCarousel } from '@/components/products/ProductCarousel';
 import { ProductGrid } from '@/components/products/ProductGrid';
@@ -54,6 +55,7 @@ export const Home: React.FC = () => {
         title="Todos los productos"
         loading={loading}
       />
+      <BrandGrid />
     </div>
   );
 }; 

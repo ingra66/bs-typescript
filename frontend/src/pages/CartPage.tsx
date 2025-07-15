@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingBag, Trash2 } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
 import { useAuthStore } from '../stores/authStore';
-import CartItem from '../components/cart/CartItem';
+import { Trash2, ArrowLeft } from 'lucide-react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+interface CartTotals {
+  subtotal: number;
+  discount: number;
+  tax: number;
+  shipping: number;
+}
 
 const CartPage: React.FC = () => {
   const { 
@@ -11,11 +18,47 @@ const CartPage: React.FC = () => {
     getTotalItems, 
     getTotalPrice, 
     clearCart,
+    removeItem,
+    updateQuantity,
     isLoading 
   } = useCartStore();
   
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
+
+  const [couponCode, setCouponCode] = useState<string>("");
+  const [showDiscount, setShowDiscount] = useState<boolean>(false);
+
+  const cartTotals: CartTotals = {
+    subtotal: getTotalPrice(),
+    discount: showDiscount ? getTotalPrice() * 0.2 : 0, // 20% discount
+    tax: 0.0,
+    shipping: 0.0,
+  };
+
+  const total = cartTotals.subtotal - cartTotals.discount + cartTotals.tax + cartTotals.shipping;
+
+  const handleRemoveItem = async (id: number) => {
+    await removeItem(id);
+  };
+
+  const handleUpdateQuantity = async (id: number, newQuantity: number) => {
+    if (newQuantity > 0) {
+      await updateQuantity(id, newQuantity);
+    }
+  };
+
+  const removeDiscount = () => {
+    setShowDiscount(false);
+  };
+
+  const applyCoupon = () => {
+    // Coupon logic here
+    console.log("Applying coupon:", couponCode);
+    if (couponCode.toLowerCase() === 'sale20') {
+      setShowDiscount(true);
+    }
+  };
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
@@ -35,133 +78,285 @@ const CartPage: React.FC = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-full transition-colors"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="text-white" size={28} />
-              <h1 className="text-white text-2xl font-bold">
-                Carrito de Compras
-              </h1>
-            </div>
-          </div>
-          
-          {items.length > 0 && (
-            <button
-              onClick={handleClearCart}
-              className="flex items-center gap-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 px-3 py-2 rounded-lg transition-colors"
-            >
-              <Trash2 size={16} />
-              Vaciar carrito
-            </button>
-          )}
+  if (isLoading) {
+    return (
+      <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ backgroundColor: "#000000" }}>
+        <div className="spinner-border text-light" role="status">
+          <span className="visually-hidden">Cargando...</span>
         </div>
+      </div>
+    );
+  }
 
-        {/* Contenido */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Lista de productos */}
-          <div className="lg:col-span-2">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400"></div>
-              </div>
-            ) : items.length === 0 ? (
-              <div className="text-center py-16">
-                <ShoppingBag className="text-gray-500 mx-auto mb-6" size={64} />
-                <h2 className="text-gray-400 text-xl font-medium mb-4">
-                  Tu carrito está vacío
-                </h2>
-                <p className="text-gray-500 mb-8">
-                  No tienes productos en tu carrito. ¡Agrega algunos productos para comenzar!
-                </p>
+  if (items.length === 0) {
+    return (
+      <div className="min-vh-100" style={{ backgroundColor: "#000000" }}>
+        <div className="container py-5" style={{ backgroundColor: "#000000" }}>
+          <div className="row">
+            <div className="col-12">
+              <div className="text-center text-white">
+                <h1 className="mb-4" style={{ fontSize: "3rem", fontWeight: "bold" }}>
+                  Carrito Vacío
+                </h1>
+                <p className="text-muted mb-4">No tienes productos en tu carrito.</p>
                 <button
                   onClick={handleContinueShopping}
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+                  className="btn btn-lg"
+                  style={{ 
+                    backgroundColor: "#DC2626", 
+                    border: "1px solid #DC2626",
+                    borderRadius: "6px",
+                    padding: "10px"
+                  }}
                 >
-                  Continuar comprando
+                  Continuar Comprando
                 </button>
               </div>
-            ) : (
-              <div className="bg-gray-800 rounded-lg overflow-hidden">
-                <div className="p-6 border-b border-gray-700">
-                  <h2 className="text-white text-lg font-semibold">
-                    Productos ({getTotalItems()})
-                  </h2>
-                </div>
-                <div className="divide-y divide-gray-700">
-                  {items.map((item) => (
-                    <CartItem key={item.id} item={item} />
-                  ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-vh-100" style={{ backgroundColor: "#000000" }}>
+      <div className="container py-5" style={{ backgroundColor: "#000000" }}>
+        <div className="row">
+          <div className="col-12">
+            <div className="d-flex justify-content-between align-items-center mb-5">
+              <div className="d-flex align-items-center">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="btn btn-link text-white me-3 p-0"
+                >
+                  <ArrowLeft size={24} />
+                </button>
+                <h1 className="text-white mb-0" style={{ fontSize: "3rem", fontWeight: "bold" }}>
+                  Carrito
+                </h1>
+              </div>
+              <button
+                onClick={handleClearCart}
+                className="btn btn-outline-danger"
+              >
+                <Trash2 size={16} className="me-2" />
+                Vaciar Carrito
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="row">
+          <div className="col-lg-8">
+            {/* Cart Items Table */}
+            <div className="card mb-4" style={{ borderRadius: "8px", borderWidth: "1px", backgroundColor: "#000000", border: "1px solid #374151" }}>
+              <div className="card-body" style={{ backgroundColor: "#000000" }}>
+                                  <div className="table-responsive">
+                    <table className="table" style={{ backgroundColor: "#000000" }}>
+                      <thead>
+                        <tr style={{ backgroundColor: "#000000", borderBottom: "1px solid #374151" }}>
+                          <th className="text-white fw-bold" style={{ backgroundColor: "#000000" }}>Producto</th>
+                          <th className="text-white fw-bold" style={{ backgroundColor: "#000000" }}>Precio</th>
+                          <th className="text-white fw-bold" style={{ backgroundColor: "#000000" }}>Cantidad</th>
+                          <th className="text-white fw-bold" style={{ backgroundColor: "#000000" }}>Subtotal</th>
+                          <th style={{ backgroundColor: "#000000" }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {items.map((item) => (
+                          <tr key={item.id} style={{ backgroundColor: "#000000", borderBottom: "1px solid #374151" }}>
+                            <td className="align-middle" style={{ backgroundColor: "#000000" }}>
+                              <div className="d-flex align-items-center">
+                                <img
+                                  src={item.image || "/placeholder.svg"}
+                                  alt={item.name}
+                                  className="me-3"
+                                  style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                                />
+                                <span className="text-white">{item.name}</span>
+                              </div>
+                            </td>
+                            <td className="align-middle text-white" style={{ backgroundColor: "#000000" }}>${(typeof item.price === 'string' ? parseFloat(item.price) : item.price).toFixed(2)}</td>
+                            <td className="align-middle" style={{ backgroundColor: "#000000" }}>
+                              <input
+                                type="number"
+                                className="form-control text-white border-secondary"
+                                style={{ 
+                                  width: "80px", 
+                                  borderRadius: "6px",
+                                  borderWidth: "1px",
+                                  padding: "8px 12px",
+                                  backgroundColor: "#1F2937"
+                                }}
+                                value={item.quantity}
+                                onChange={(e) => handleUpdateQuantity(item.id, Number.parseInt(e.target.value))}
+                                min="1"
+                                max={item.stock}
+                              />
+                            </td>
+                            <td className="align-middle text-white" style={{ backgroundColor: "#000000" }}>${((typeof item.price === 'string' ? parseFloat(item.price) : item.price) * item.quantity).toFixed(2)}</td>
+                            <td className="align-middle" style={{ backgroundColor: "#000000" }}>
+                              <button
+                                className="btn btn-link text-danger p-0"
+                                onClick={() => handleRemoveItem(item.id)}
+                                style={{ fontSize: "1.2rem" }}
+                              >
+                                ×
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+              </div>
+            </div>
+
+            {/* Coupon Section */}
+            <div className="card mb-4" style={{ backgroundColor: "#000000", borderRadius: "8px", borderWidth: "1px", border: "1px solid #DC2626" }}>
+              <div className="card-body" style={{ backgroundColor: "#000000" }}>
+                <div className="row align-items-center">
+                  <div className="col-md-8">
+                    <input
+                      type="text"
+                      className="form-control border-danger text-white"
+                      placeholder="Código de descuento"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      style={{
+                        borderRadius: "6px",
+                        borderWidth: "1px",
+                        padding: "8px 12px",
+                        backgroundColor: "#1F2937"
+                      }}
+                    />
+                  </div>
+                  <div className="col-md-4 mt-2 mt-md-0">
+                    <button
+                      className="btn btn-danger w-100"
+                      onClick={applyCoupon}
+                      style={{ 
+                        backgroundColor: "#DC2626", 
+                        border: "1px solid #DC2626",
+                        borderRadius: "6px",
+                        padding: "8px 12px"
+                      }}
+                    >
+                      Aplicar descuento
+                    </button>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
-          {/* Resumen del pedido */}
-          {items.length > 0 && (
-            <div className="lg:col-span-1">
-              <div className="bg-gray-800 rounded-lg p-6 sticky top-8">
-                <h2 className="text-white text-lg font-semibold mb-6">
-                  Resumen del pedido
-                </h2>
-                
-                {/* Detalles */}
-                <div className="space-y-4 mb-6">
-                  <div className="flex justify-between text-gray-400">
-                    <span>Productos ({getTotalItems()})</span>
-                    <span>${getTotalPrice().toFixed(2)}</span>
+          <div className="col-lg-4">
+            {/* Cart Totals */}
+            <div className="card" style={{ borderRadius: "8px", borderWidth: "1px", backgroundColor: "#000000", border: "1px solid #374151" }}>
+              <div className="card-header" style={{ borderRadius: "8px 8px 0 0", borderWidth: "1px", backgroundColor: "#000000", border: "1px solid #374151" }}>
+                <h4 className="text-white mb-0 fw-bold">Resumen del Carrito</h4>
+              </div>
+              <div className="card-body" style={{ backgroundColor: "#000000" }}>
+                <div className="row mb-3">
+                  <div className="col-6">
+                    <span className="text-white fw-bold">Subtotal</span>
                   </div>
-                  <div className="flex justify-between text-gray-400">
-                    <span>Envío</span>
-                    <span>Gratis</span>
+                  <div className="col-6 text-end">
+                    <span className="text-white">${cartTotals.subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="border-t border-gray-700 pt-4">
-                    <div className="flex justify-between text-white text-lg font-semibold">
-                      <span>Total</span>
-                      <span>${getTotalPrice().toFixed(2)}</span>
+                </div>
+
+                {showDiscount && (
+                  <div className="row mb-3">
+                    <div className="col-6">
+                      <span className="text-white fw-bold">20% Descuento</span>
+                    </div>
+                    <div className="col-6 text-end">
+                      <span className="text-danger">
+                        -${cartTotals.discount.toFixed(2)}
+                        <button
+                          className="btn btn-link text-danger p-0 ms-2"
+                          onClick={removeDiscount}
+                          style={{ fontSize: "0.8rem" }}
+                        >
+                          [Quitar]
+                        </button>
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mb-3">
+                  <div className="row mb-2">
+                    <div className="col-12">
+                      <span className="text-white fw-bold">Envío</span>
+                    </div>
+                  </div>
+                  <div className="row mb-2">
+                    <div className="col-12">
+                      <small className="text-danger">Ingresa tu dirección para ver opciones de envío.</small>
+                    </div>
+                  </div>
+                  <div className="row">
+                    <div className="col-12">
+                      <button className="btn btn-link text-danger p-0 text-decoration-underline">
+                        Calcular envío
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Botones */}
-                <div className="space-y-3">
-                  <button
-                    onClick={handleCheckout}
-                    disabled={isLoading}
-                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-                  >
-                    {isAuthenticated ? 'Proceder al pago' : 'Iniciar sesión para pagar'}
-                  </button>
-                  
-                  <button
-                    onClick={handleContinueShopping}
-                    className="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Continuar comprando
-                  </button>
+                <div className="row mb-3">
+                  <div className="col-6">
+                    <span className="text-white fw-bold">Impuestos</span>
+                  </div>
+                  <div className="col-6 text-end">
+                    <span className="text-white">${cartTotals.tax.toFixed(2)}</span>
+                  </div>
                 </div>
 
-                {/* Información adicional */}
-                <div className="mt-6 p-4 bg-gray-700 rounded-lg">
-                  <h3 className="text-white font-medium mb-2">Información importante</h3>
-                  <ul className="text-gray-400 text-sm space-y-1">
-                    <li>• Envío gratuito en pedidos superiores a $50</li>
-                    <li>• Devoluciones gratuitas hasta 30 días</li>
-                    <li>• Pago seguro con tarjeta o efectivo</li>
-                  </ul>
+                <hr className="border-secondary" />
+
+                <div className="row mb-4">
+                  <div className="col-6">
+                    <span className="text-white fw-bold fs-5">Total</span>
+                  </div>
+                  <div className="col-6 text-end">
+                    <span className="text-white fw-bold fs-5">${total.toFixed(2)}</span>
+                  </div>
+                </div>
+
+
+
+                {/* Checkout Buttons */}
+                <div className="d-grid gap-2">
+                  <button 
+                    className="btn btn-danger btn-lg"
+                    onClick={handleCheckout}
+                    style={{ 
+                      backgroundColor: "#DC2626", 
+                      border: "1px solid #DC2626",
+                      borderRadius: "6px",
+                      padding: "10px"
+                    }}
+                  >
+                    {isAuthenticated ? 'Proceder al Pago' : 'Iniciar Sesión para Pagar'}
+                  </button>
+                  <button
+                    onClick={handleContinueShopping}
+                    className="btn btn-outline-light"
+                    style={{
+                      borderRadius: "6px",
+                      padding: "10px"
+                    }}
+                  >
+                    Continuar Comprando
+                  </button>
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

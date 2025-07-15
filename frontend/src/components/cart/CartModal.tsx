@@ -4,24 +4,20 @@ import { useCartStore } from '../../stores/cartStore';
 import { useAuthStore } from '../../stores/authStore';
 import CartItem from './CartItem';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const CartModal: React.FC = () => {
-  const { 
-    isOpen, 
-    closeCart, 
-    items, 
-    getTotalItems, 
+  const {
+    isOpen,
+    closeCart,
+    items,
+    getTotalItems,
     getTotalPrice,
     isLoading,
     clearCart,
-    debugCart
+    removeItem
   } = useCartStore();
-  
-  // Debug: log de items cuando cambian
-  console.log('CartModal: Items actuales:', items);
-  console.log('CartModal: Total items:', getTotalItems());
-  console.log('CartModal: Modal abierto:', isOpen);
-  
+
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
@@ -35,22 +31,24 @@ const CartModal: React.FC = () => {
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
     };
   }, [isOpen, closeCart]);
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      // Redirigir a login y luego a checkout
       navigate('/login?redirect=/checkout');
     } else {
       navigate('/checkout');
     }
+    closeCart();
+  };
+
+  const handleViewCart = () => {
+    navigate('/cart');
     closeCart();
   };
 
@@ -59,119 +57,334 @@ const CartModal: React.FC = () => {
     navigate('/');
   };
 
-  if (!isOpen) return null;
+  const handleRemoveItem = async (itemId: number) => {
+    await removeItem(itemId);
+  };
 
   return (
-    <>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-        onClick={closeCart}
-      />
-      
-      {/* Modal */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-gray-900 shadow-xl z-50 transform transition-transform duration-300 ease-in-out">
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-700">
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="text-white" size={24} />
-              <h2 className="text-white text-xl font-semibold">
-                Carrito ({getTotalItems()})
-              </h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={debugCart}
-                className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-900/20 rounded-full transition-colors text-xs"
-                title="Debug carrito"
-              >
-                🐛
-              </button>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Overlay sutil */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.15 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.15)',
+              zIndex: 40,
+              pointerEvents: 'auto'
+            }}
+            onClick={closeCart}
+          />
+          
+          {/* Sidebar minimalista */}
+          <motion.div
+            initial={{ transform: 'translateX(100%)' }}
+            animate={{ transform: 'translateX(0)' }}
+            exit={{ transform: 'translateX(100%)' }}
+            transition={{ type: 'tween', duration: 0.3, ease: 'easeOut' }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              right: 0,
+              height: '100vh',
+              width: '20vw',
+              minWidth: '320px',
+              maxWidth: '480px',
+              backgroundColor: '#000000',
+              boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.8)',
+              zIndex: 50,
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            {/* Header minimalista */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '24px 20px',
+              borderBottom: '1px solid #1a1a1a'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <ShoppingBag size={18} style={{ color: 'white' }} />
+                <h2 style={{
+                  color: 'white',
+                  fontSize: '16px',
+                  fontWeight: 400,
+                  margin: 0
+                }}>
+                  Carrito ({getTotalItems()})
+                </h2>
+              </div>
               <button
                 onClick={closeCart}
-                className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-full transition-colors"
+                style={{
+                  padding: '6px',
+                  color: '#666',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#666';
+                }}
+                aria-label="Cerrar carrito"
               >
-                <X size={20} />
+                <X size={16} />
               </button>
             </div>
-          </div>
 
-          {/* Contenido */}
-          <div className="flex-1 overflow-y-auto">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
-              </div>
-            ) : items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-center">
-                <ShoppingBag className="text-gray-500 mb-4" size={48} />
-                <h3 className="text-gray-400 text-lg font-medium mb-2">
-                  Tu carrito está vacío
-                </h3>
-                <p className="text-gray-500 mb-6">
-                  Agrega algunos productos para comenzar
-                </p>
-                <button
-                  onClick={handleContinueShopping}
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors"
-                >
-                  Continuar comprando
-                </button>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-700">
-                {items.map((item) => (
-                  <CartItem key={item.id} item={item} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          {items.length > 0 && (
-            <div className="border-t border-gray-700 p-4 space-y-4">
-              {/* Total */}
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 text-lg">Total:</span>
-                <span className="text-white text-xl font-bold">
-                  ${getTotalPrice().toFixed(2)}
-                </span>
-              </div>
-
-              {/* Botones */}
-              <div className="space-y-2">
-                <button
-                  onClick={handleCheckout}
-                  disabled={isLoading}
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  {isAuthenticated ? 'Proceder al pago' : 'Iniciar sesión para pagar'}
-                  <ArrowRight size={18} />
-                </button>
-                
-                <div className="flex gap-2">
+            {/* Contenido del carrito */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              backgroundColor: '#000000',
+              padding: '0 20px'
+            }}>
+              {isLoading ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100px'
+                }}>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    border: '2px solid #333',
+                    borderTop: '2px solid white',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }}></div>
+                </div>
+              ) : items.length === 0 ? (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '200px',
+                  textAlign: 'center'
+                }}>
+                  <ShoppingBag size={24} style={{ color: '#333', marginBottom: '12px' }} />
+                  <h3 style={{
+                    color: '#666',
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    margin: '0 0 8px 0'
+                  }}>
+                    Carrito vacío
+                  </h3>
+                  <p style={{
+                    color: '#444',
+                    fontSize: '12px',
+                    margin: '0 0 16px 0'
+                  }}>
+                    Agrega productos para comenzar
+                  </p>
                   <button
                     onClick={handleContinueShopping}
-                    className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: 'white',
+                      color: 'black',
+                      padding: '8px 16px',
+                      borderRadius: '4px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f0f0f0';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'white';
+                    }}
                   >
                     Continuar comprando
                   </button>
+                </div>
+              ) : (
+                <div style={{ paddingTop: '16px' }}>
+                  {items.map((item) => (
+                    <div key={item.id} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '16px 0',
+                      borderBottom: '1px solid #1a1a1a'
+                    }}>
+                      {/* Imagen del producto */}
+                      <div style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '4px',
+                        overflow: 'hidden',
+                        flexShrink: 0
+                      }}>
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      </div>
+
+                      {/* Información del producto */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h3 style={{
+                          color: 'white',
+                          fontSize: '14px',
+                          fontWeight: 400,
+                          margin: '0 0 4px 0',
+                          lineHeight: '1.2'
+                        }}>
+                          {item.name}
+                        </h3>
+                        <p style={{
+                          color: '#666',
+                          fontSize: '12px',
+                          margin: 0
+                        }}>
+                          {item.quantity} x ${Number(item.price).toFixed(2)}
+                        </p>
+                      </div>
+
+                      {/* Botón eliminar */}
+                      <button
+                        onClick={() => handleRemoveItem(item.id)}
+                        style={{
+                          padding: '4px',
+                          color: '#666',
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          width: '20px',
+                          height: '20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = 'white';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#666';
+                        }}
+                        aria-label="Eliminar producto"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer minimalista */}
+            {items.length > 0 && (
+              <div style={{
+                borderTop: '1px solid #1a1a1a',
+                padding: '20px',
+                backgroundColor: '#000000'
+              }}>
+                {/* Subtotal */}
+                <div style={{
+                  textAlign: 'center',
+                  marginBottom: '20px'
+                }}>
+                  <p style={{
+                    color: 'white',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    margin: 0
+                  }}>
+                    Subtotal: ${getTotalPrice().toFixed(2)}
+                  </p>
+                </div>
+
+                {/* Botones */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={handleViewCart}
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#1a1a1a',
+                      color: 'white',
+                      padding: '12px 16px',
+                      borderRadius: '4px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#333';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#1a1a1a';
+                    }}
+                  >
+                    View cart
+                  </button>
                   
                   <button
-                    onClick={clearCart}
+                    onClick={handleCheckout}
                     disabled={isLoading}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white rounded-lg transition-colors text-sm"
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#1a1a1a',
+                      color: 'white',
+                      padding: '12px 16px',
+                      borderRadius: '4px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      transition: 'all 0.2s',
+                      opacity: isLoading ? 0.5 : 1
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isLoading) {
+                        e.currentTarget.style.backgroundColor = '#333';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isLoading) {
+                        e.currentTarget.style.backgroundColor = '#1a1a1a';
+                      }
+                    }}
                   >
-                    Limpiar
+                    Checkout
                   </button>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </>
+            )}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
