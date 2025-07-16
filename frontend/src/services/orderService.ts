@@ -100,10 +100,33 @@ class OrderService {
   }
 
   /**
+   * Obtener todas las órdenes para el admin (todas las órdenes del sistema)
+   */
+  async getAdminOrders(params?: {
+    status?: string;
+    payment_status?: string;
+    order_by?: string;
+    order_direction?: 'asc' | 'desc';
+    per_page?: number;
+    page?: number;
+  }): Promise<OrdersResponse> {
+    const response = await api.get('/admin/orders', { params });
+    return response.data;
+  }
+
+  /**
    * Obtener una orden específica
    */
   async getOrder(orderId: number): Promise<OrderResponse> {
     const response = await api.get(`/orders/${orderId}`);
+    return response.data;
+  }
+
+  /**
+   * Obtener una orden específica para el admin
+   */
+  async getAdminOrder(orderId: number): Promise<OrderResponse> {
+    const response = await api.get(`/admin/orders/${orderId}`);
     return response.data;
   }
 
@@ -129,6 +152,14 @@ class OrderService {
    */
   async getOrderStatistics(): Promise<OrderStatistics> {
     const response = await api.get('/orders/statistics');
+    return response.data;
+  }
+
+  /**
+   * Actualizar estado de una orden (admin)
+   */
+  async updateOrderStatus(orderId: number, status: string): Promise<OrderResponse> {
+    const response = await api.put(`/admin/orders/${orderId}/status`, { status });
     return response.data;
   }
 }

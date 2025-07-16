@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -741,6 +742,33 @@ Route::prefix('v1')->group(function () {
         // Admin routes (solo para administradores)
         Route::middleware('admin')->group(function () {
             
+            // Debug endpoint para probar subida de imágenes
+            Route::post('/debug/upload-test', function (Request $request) {
+                try {
+                    $data = $request->all();
+                    $files = $request->allFiles();
+                    
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Debug de subida de archivos',
+                        'data' => [
+                            'request_data' => $data,
+                            'files' => $files,
+                            'has_images' => $request->hasFile('images'),
+                            'images_count' => $request->hasFile('images') ? count($request->file('images')) : 0,
+                            'content_type' => $request->header('Content-Type'),
+                            'user' => Auth::user(),
+                        ],
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ], 500);
+                }
+            });
+            
             // Categorías (admin)
             Route::prefix('admin/categories')->group(function () {
                 Route::post('/', [CategoryController::class, 'store']);
@@ -776,6 +804,17 @@ Route::prefix('v1')->group(function () {
                 Route::get('/', [ReviewController::class, 'adminIndex']);
                 Route::put('/{review}/approve', [ReviewController::class, 'approve']);
                 Route::put('/{review}/reject', [ReviewController::class, 'reject']);
+            });
+            
+            // Usuarios (admin)
+            Route::prefix('admin/users')->group(function () {
+                Route::get('/', [UserController::class, 'adminIndex']);
+                Route::get('/statistics', [UserController::class, 'getUsersStatistics']);
+                Route::post('/', [UserController::class, 'store']);
+                Route::get('/{user}', [UserController::class, 'adminShow']);
+                Route::put('/{user}', [UserController::class, 'update']);
+                Route::delete('/{user}', [UserController::class, 'destroy']);
+                Route::get('/{user}/statistics', [UserController::class, 'getUserStatistics']);
             });
         });
     });

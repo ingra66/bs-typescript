@@ -1,5 +1,5 @@
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
@@ -7,7 +7,7 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Profile } from './pages/Profile';
-import { AdminDashboard } from './pages/AdminDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import { ProductPage } from './pages/ProductPage';
 import CartPage from './pages/CartPage';
 import Checkout from './pages/Checkout';
@@ -20,34 +20,43 @@ import CartSync from './components/cart/CartSync';
 // import CartDebug from './components/cart/CartDebug';
 
 function App() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
     <>
-      <div className="min-h-screen bg-gray-900 flex flex-col">
-        <CartSync />
-        <Header />
-        {/* <CartDebug /> */}
-    
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/product/:id" element={<ProductPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/orders/:orderId" element={<OrderDetailPage />} />
-            <Route path="/payment/success" element={<PaymentSuccess />} />
-            <Route path="/payment/failure" element={<PaymentFailure />} />
-            <Route path="/payment/pending" element={<PaymentPending />} />
-          </Routes>
-        </main>
-    
-        <Footer />
-      </div>
+      {!isAdminRoute && (
+        <div className="min-h-screen bg-gray-900 flex flex-col">
+          <CartSync />
+          <Header />
+          {/* <CartDebug /> */}
+      
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/product/:id" element={<ProductPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/orders/:orderId" element={<OrderDetailPage />} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/payment/failure" element={<PaymentFailure />} />
+              <Route path="/payment/pending" element={<PaymentPending />} />
+            </Routes>
+          </main>
+      
+          <Footer />
+        </div>
+      )}
+
+      {isAdminRoute && (
+        <Routes>
+          <Route path="/admin/*" element={<AdminDashboard />} />
+        </Routes>
+      )}
     
       <Toaster 
         position="top-right"
