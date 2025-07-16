@@ -378,7 +378,7 @@ export const Header: React.FC = () => {
               gap: '32px',
               flexWrap: 'wrap'
             }}>
-              {categories.map((cat, index) => (
+              {categories.map((cat) => (
                 <li key={cat.id} style={{ position: 'relative' }}>
                   <a 
                     href={`/category/${cat.slug}`}

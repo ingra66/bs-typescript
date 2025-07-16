@@ -17,8 +17,15 @@ class MercadoPagoService
     public function __construct()
     {
         // Configurar MercadoPago
-        MercadoPagoConfig::setAccessToken(config('services.mercadopago.access_token'));
-        MercadoPagoConfig::setEnvironment(config('services.mercadopago.environment', 'sandbox'));
+        $accessToken = config('services.mercadopago.access_token');
+        
+        if (!$accessToken) {
+            Log::error('MercadoPago access token no configurado');
+            throw new \Exception('MercadoPago access token no configurado');
+        }
+        
+        Log::info('Configurando MercadoPago con token:', ['token_length' => strlen($accessToken)]);
+        MercadoPagoConfig::setAccessToken($accessToken);
         
         $this->preferenceClient = new PreferenceClient();
         $this->paymentClient = new PaymentClient();
@@ -30,6 +37,13 @@ class MercadoPagoService
     public function createPreference(Order $order): array
     {
         try {
+            Log::info('Creando preferencia de MercadoPago para orden:', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'total_amount' => $order->total_amount,
+                'items_count' => $order->items->count(),
+            ]);
+            
             // Crear items para MercadoPago
             $items = [];
             foreach ($order->items as $item) {
@@ -40,6 +54,8 @@ class MercadoPagoService
                     'currency_id' => 'ARS',
                 ];
             }
+            
+            Log::info('Items creados para MercadoPago:', ['items' => $items]);
 
             // Agregar envío si existe
             if ($order->shipping_amount > 0) {
@@ -51,20 +67,85 @@ class MercadoPagoService
                 ];
             }
 
-            // Crear preferencia
-            $preference = $this->preferenceClient->create([
+            // Preparar datos de preferencia
+            $preferenceData = [
                 'items' => $items,
                 'external_reference' => $order->order_number,
-                'notification_url' => config('services.mercadopago.notification_url'),
-                'back_urls' => config('services.mercadopago.back_urls'),
                 'auto_return' => 'approved',
                 'expires' => true,
                 'expiration_date_to' => now()->addHours(24)->toISOString(),
-                'payer' => [
+            ];
+            
+            // Agregar payer solo si tenemos la información
+            if (isset($order->user->email)) {
+                $preferenceData['payer'] = [
                     'name' => $order->shipping_address['name'] ?? 'Cliente',
                     'email' => $order->user->email,
-                ],
+                ];
+            }
+            
+            // Agregar URLs de notificación y retorno
+            $notificationUrl = config('services.mercadopago.notification_url');
+            if ($notificationUrl && filter_var($notificationUrl, FILTER_VALIDATE_URL)) {
+                $preferenceData['notification_url'] = $notificationUrl;
+            }
+            
+            // Siempre incluir back_urls para evitar el error de auto_return
+            // Para desarrollo, usar URLs de MercadoPago que siempre funcionan
+            $environment = config('services.mercadopago.environment', 'sandbox');
+            
+            if ($environment === 'sandbox') {
+                // En desarrollo/sandbox, usar URLs de MercadoPago
+                $preferenceData['back_urls'] = [
+                    'success' => 'https://www.mercadopago.com.ar',
+                    'failure' => 'https://www.mercadopago.com.ar',
+                    'pending' => 'https://www.mercadopago.com.ar',
+                ];
+            } else {
+                // En producción, usar las URLs configuradas
+                $backUrls = config('services.mercadopago.back_urls');
+                if ($backUrls && is_array($backUrls)) {
+                    $validBackUrls = [];
+                    foreach ($backUrls as $key => $url) {
+                        if (filter_var($url, FILTER_VALIDATE_URL)) {
+                            $validBackUrls[$key] = $url;
+                        }
+                    }
+                    if (!empty($validBackUrls)) {
+                        $preferenceData['back_urls'] = $validBackUrls;
+                    } else {
+                        // Fallback a URLs de MercadoPago
+                        $preferenceData['back_urls'] = [
+                            'success' => 'https://www.mercadopago.com.ar',
+                            'failure' => 'https://www.mercadopago.com.ar',
+                            'pending' => 'https://www.mercadopago.com.ar',
+                        ];
+                    }
+                } else {
+                    $preferenceData['back_urls'] = [
+                        'success' => 'https://www.mercadopago.com.ar',
+                        'failure' => 'https://www.mercadopago.com.ar',
+                        'pending' => 'https://www.mercadopago.com.ar',
+                    ];
+                }
+            }
+            
+            Log::info('Datos de preferencia preparados:', ['preference_data' => $preferenceData]);
+            
+            // Log adicional para debug
+            Log::info('Datos de orden para debug:', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'total_amount' => $order->total_amount,
+                'user_email' => $order->user->email ?? 'no email',
+                'shipping_address' => $order->shipping_address,
+                'items_count' => $order->items->count(),
             ]);
+            
+            // Crear preferencia
+            Log::info('Llamando a MercadoPago API...');
+            $preference = $this->preferenceClient->create($preferenceData);
+            Log::info('Preferencia creada exitosamente:', ['preference_id' => $preference->id]);
 
             // Actualizar orden con el ID de preferencia
             $order->update([
@@ -79,14 +160,59 @@ class MercadoPagoService
             ];
 
         } catch (MPApiException $e) {
+            // Capturar más detalles del error usando los métodos correctos de MPResponse
+            $apiResponse = $e->getApiResponse();
+            $statusCode = $apiResponse ? $apiResponse->getStatusCode() : 'unknown';
+            
+            // Intentar obtener el contenido de la respuesta de diferentes maneras
+            $responseContent = 'no content';
+            if ($apiResponse) {
+                try {
+                    // Intentar diferentes métodos para obtener el contenido
+                    if (method_exists($apiResponse, 'getContent')) {
+                        $responseContent = $apiResponse->getContent();
+                    } elseif (method_exists($apiResponse, 'getBody')) {
+                        $responseContent = $apiResponse->getBody();
+                    } elseif (method_exists($apiResponse, 'getResponse')) {
+                        $responseContent = $apiResponse->getResponse();
+                    } else {
+                        // Si no hay método específico, convertir a array
+                        $responseContent = (array) $apiResponse;
+                    }
+                } catch (\Exception $contentError) {
+                    $responseContent = 'Error getting content: ' . $contentError->getMessage();
+                }
+            }
+            
             Log::error('MercadoPago Preference Error: ' . $e->getMessage(), [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
+                'error_code' => $statusCode,
+                'response_content' => $responseContent,
+                'api_response_class' => $apiResponse ? get_class($apiResponse) : 'null',
+                'api_response_methods' => $apiResponse ? get_class_methods($apiResponse) : [],
             ]);
 
             return [
                 'success' => false,
                 'error' => 'Error al crear preferencia de pago: ' . $e->getMessage(),
+                'details' => [
+                    'code' => $statusCode,
+                    'response_content' => $responseContent,
+                    'api_response_class' => $apiResponse ? get_class($apiResponse) : 'null',
+                    'api_response_methods' => $apiResponse ? get_class_methods($apiResponse) : [],
+                ],
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error general al crear preferencia: ' . $e->getMessage(), [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'Error general al crear preferencia de pago: ' . $e->getMessage(),
             ];
         }
     }

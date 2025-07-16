@@ -38,9 +38,9 @@ return [
         'webhook_url' => env('MERCADOPAGO_WEBHOOK_URL'),
         'notification_url' => env('MERCADOPAGO_NOTIFICATION_URL'),
         'back_urls' => [
-            'success' => env('APP_FRONTEND_URL') . '/payment/success',
-            'failure' => env('APP_FRONTEND_URL') . '/payment/failure',
-            'pending' => env('APP_FRONTEND_URL') . '/payment/pending',
+            'success' => env('MERCADOPAGO_BACK_URLS_SUCCESS', env('APP_FRONTEND_URL') . '/payment/success'),
+            'failure' => env('MERCADOPAGO_BACK_URLS_FAILURE', env('APP_FRONTEND_URL') . '/payment/failure'),
+            'pending' => env('MERCADOPAGO_BACK_URLS_PENDING', env('APP_FRONTEND_URL') . '/payment/pending'),
         ],
     ],
 

@@ -81,11 +81,17 @@ class OrderController extends Controller
         ]);
 
         // Obtener items del carrito
-        $cartItems = CartItem::where('user_id', Auth::id())
+        $userId = Auth::id();
+        \Log::info('Creando orden para usuario: ' . $userId);
+        
+        $cartItems = CartItem::where('user_id', $userId)
             ->with('product')
             ->get();
 
+        \Log::info('Items en carrito encontrados: ' . $cartItems->count());
+
         if ($cartItems->isEmpty()) {
+            \Log::warning('Carrito vacío para usuario: ' . $userId);
             return response()->json([
                 'success' => false,
                 'message' => 'El carrito está vacío',

@@ -15,7 +15,7 @@ interface CartTotals {
 const CartPage: React.FC = () => {
   const { 
     items, 
-    getTotalItems, 
+ 
     getTotalPrice, 
     clearCart,
     removeItem,

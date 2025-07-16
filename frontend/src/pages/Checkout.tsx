@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, MapPin, User, Phone, Mail } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
 import { useAuthStore } from '../stores/authStore';
 import CartItem from '../components/cart/CartItem';
+import PaymentProcessor from '../components/payment/PaymentProcessor';
+import AuthDebug from '../components/debug/AuthDebug';
+import type { CreateOrderRequest } from '../types/order';
 
 interface ShippingAddress {
   name: string;
@@ -16,11 +19,11 @@ interface ShippingAddress {
 }
 
 const Checkout: React.FC = () => {
-  const { items, getTotalItems, getTotalPrice, clearCart } = useCartStore();
+  const { items, getTotalItems, getTotalPrice } = useCartStore();
   const { user } = useAuthStore();
   const navigate = useNavigate();
   
-  const [isLoading, setIsLoading] = useState(false);
+
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     name: user?.name || '',
     address: '',
@@ -34,7 +37,7 @@ const Checkout: React.FC = () => {
   const [errors, setErrors] = useState<Partial<ShippingAddress>>({});
 
   // Validar formulario
-  const validateForm = (): boolean => {
+  const validateForm = useMemo((): boolean => {
     const newErrors: Partial<ShippingAddress> = {};
     
     if (!shippingAddress.name.trim()) {
@@ -58,64 +61,26 @@ const Checkout: React.FC = () => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [shippingAddress]);
 
-  // Crear orden y redirigir a Mercado Pago
-  const handleProceedToPayment = async () => {
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // 1. Crear la orden
-      const orderResponse = await fetch('/api/v1/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
+  // Crear datos de la orden
+  const orderData = useMemo((): CreateOrderRequest => {
+    return {
           shipping_address: shippingAddress,
           billing_address: shippingAddress, // Usar la misma dirección para facturación
-        }),
-      });
+    };
+  }, [shippingAddress]);
 
-      const orderData = await orderResponse.json();
+  // Manejar éxito del pago
+  const handlePaymentSuccess = (orderId: number) => {
+    console.log('Orden creada exitosamente:', orderId);
+    // El usuario será redirigido a MercadoPago automáticamente
+  };
 
-      if (!orderData.success) {
-        throw new Error(orderData.message || 'Error al crear la orden');
-      }
-
-      // 2. Crear preferencia de Mercado Pago
-      const preferenceResponse = await fetch('/api/v1/mercadopago/create-preference', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          order_id: orderData.data.id,
-        }),
-      });
-
-      const preferenceData = await preferenceResponse.json();
-
-      if (!preferenceData.success) {
-        throw new Error(preferenceData.message || 'Error al crear preferencia de pago');
-      }
-
-      // 3. Redirigir a Mercado Pago
-      const checkoutUrl = preferenceData.data.init_point;
-      window.location.href = checkoutUrl;
-
-    } catch (error) {
-      console.error('Error en checkout:', error);
-      alert(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-    } finally {
-      setIsLoading(false);
-    }
+  // Manejar error del pago
+  const handlePaymentError = (error: string) => {
+    console.error('Error en el pago:', error);
+    alert(`Error: ${error}`);
   };
 
   const handleInputChange = (field: keyof ShippingAddress, value: string) => {
@@ -358,24 +323,70 @@ const Checkout: React.FC = () => {
                 </div>
               </div>
 
-              {/* Botón de pago */}
+              {/* Debug buttons */}
+              <div className="space-y-2 mb-4">
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/v1/debug/cart', {
+                        headers: {
+                          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                        },
+                      });
+                      const data = await response.json();
+                      console.log('Debug carrito:', data);
+                      alert(`Carrito backend: ${data.data.cart_items_count} items`);
+                    } catch (error) {
+                      console.error('Error debug:', error);
+                    }
+                  }}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
+                >
+                  Debug Carrito Backend
+                </button>
+                
               <button
-                onClick={handleProceedToPayment}
-                disabled={isLoading}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-4 px-6 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  onClick={() => {
+                    const { items } = useCartStore.getState();
+                    console.log('Carrito frontend:', items);
+                    alert(`Carrito frontend: ${items.length} items`);
+                  }}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg"
               >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Procesando...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard size={20} />
-                    Proceder con Mercado Pago
-                  </>
-                )}
+                  Debug Carrito Frontend
               </button>
+                
+                <button
+                  onClick={async () => {
+                    try {
+                      await useCartStore.getState().syncWithBackend();
+                      alert('Sincronización forzada completada');
+                    } catch (error) {
+                      console.error('Error sincronizando:', error);
+                      alert('Error en sincronización');
+                    }
+                  }}
+                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg"
+                >
+                  Forzar Sincronización
+                </button>
+              </div>
+
+              {/* Procesador de pago */}
+              {validateForm ? (
+                <PaymentProcessor
+                  orderData={orderData}
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentError}
+                />
+              ) : (
+                <button
+                  disabled
+                  className="w-full bg-gray-600 text-gray-400 py-4 px-6 rounded-lg font-medium cursor-not-allowed"
+                >
+                  Completa todos los campos requeridos
+                </button>
+              )}
 
               {/* Información adicional */}
               <div className="mt-6 p-4 bg-gray-700 rounded-lg">
@@ -389,6 +400,11 @@ const Checkout: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Debug de autenticación */}
+        <div className="mt-8">
+          <AuthDebug />
         </div>
       </div>
     </div>

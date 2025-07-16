@@ -22,7 +22,7 @@ interface ProductCarouselProps {
 export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, title }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const itemsPerView = 5;
-  const [loadingId, setLoadingId] = useState<number | null>(null);
+
   const navigate = useNavigate();
   // const { isAuthenticated } = useAuthStore();
   const { addItem } = useCartStore();

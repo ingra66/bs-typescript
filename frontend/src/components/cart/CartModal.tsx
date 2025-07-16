@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { X, ShoppingBag, ArrowRight } from 'lucide-react';
+import { X, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '../../stores/cartStore';
 import { useAuthStore } from '../../stores/authStore';
-import CartItem from './CartItem';
+
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,7 +14,7 @@ const CartModal: React.FC = () => {
     getTotalItems,
     getTotalPrice,
     isLoading,
-    clearCart,
+
     removeItem
   } = useCartStore();
 

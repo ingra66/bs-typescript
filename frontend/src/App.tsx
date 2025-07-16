@@ -14,6 +14,8 @@ import Checkout from './pages/Checkout';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentFailure from './pages/PaymentFailure';
 import PaymentPending from './pages/PaymentPending';
+import Orders from './pages/Orders';
+import OrderDetailPage from './pages/OrderDetailPage';
 import CartSync from './components/cart/CartSync';
 // import CartDebug from './components/cart/CartDebug';
 
@@ -36,6 +38,8 @@ function App() {
             <Route path="/product/:id" element={<ProductPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/orders/:orderId" element={<OrderDetailPage />} />
             <Route path="/payment/success" element={<PaymentSuccess />} />
             <Route path="/payment/failure" element={<PaymentFailure />} />
             <Route path="/payment/pending" element={<PaymentPending />} />

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { XCircle, RefreshCw, Home, CreditCard } from 'lucide-react';
+import mercadoPagoService from '../services/mercadopagoService';
 
 const PaymentFailure: React.FC = () => {
   const navigate = useNavigate();
@@ -9,16 +10,14 @@ const PaymentFailure: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const paymentId = searchParams.get('payment_id');
-    const preferenceId = searchParams.get('preference_id');
-    const externalReference = searchParams.get('external_reference');
+    const paymentResponse = mercadoPagoService.processPaymentResponse(searchParams);
 
-    if (paymentId && preferenceId) {
+    if (paymentResponse.paymentId && paymentResponse.preferenceId) {
       setOrderDetails({
-        orderNumber: externalReference || 'ORD-' + Date.now(),
-        paymentId: paymentId,
-        amount: searchParams.get('amount') || '0',
-        paymentMethod: searchParams.get('payment_method_type') || 'Tarjeta',
+        orderNumber: paymentResponse.externalReference || 'ORD-' + Date.now(),
+        paymentId: paymentResponse.paymentId,
+        amount: paymentResponse.amount || '0',
+        paymentMethod: paymentResponse.paymentMethodType || 'Tarjeta',
       });
     }
     setLoading(false);
