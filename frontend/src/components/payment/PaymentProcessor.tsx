@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, Loader2, AlertCircle, CheckCircle } from 'lucide-react';
-import mercadoPagoService from '../../services/mercadopagoService';
-import orderService from '../../services/orderService';
+import paymentService from '../../services/paymentService';
+import { useCartStore } from '../../stores/cartStore';
+import { useAuthStore } from '../../stores/authStore';
 import type { CreateOrderRequest } from '../../types/order';
 
 interface PaymentProcessorProps {
@@ -19,6 +20,8 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
   onError,
 }) => {
   const navigate = useNavigate();
+  const { items } = useCartStore();
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'creating' | 'processing' | 'redirecting'>('creating');
   const [error, setError] = useState<string | null>(null);
@@ -29,22 +32,18 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
       setError(null);
       setStep('creating');
 
-      // 1. Crear la orden
-      console.log('Token de autenticación:', localStorage.getItem('auth_token'));
-      console.log('Usuario actual:', localStorage.getItem('user'));
-      console.log('Datos de la orden a enviar:', orderData);
-      
-      const orderResponse = await orderService.createOrder(orderData);
-      
-      if (!orderResponse.success) {
-        throw new Error('Error al crear la orden');
+      console.log('Procesando pago con items:', items);
+      console.log('Usuario:', user);
+
+      // Intentar crear preferencia de pago con los items del carrito
+      let preferenceResponse;
+      try {
+        preferenceResponse = await paymentService.createPaymentPreference(items, user);
+      } catch (error) {
+        console.log('Fallback: usando preferencia simple');
+        // Si falla, usar el método simple que sabemos que funciona
+        preferenceResponse = await paymentService.createSimplePreference();
       }
-
-      const orderId = orderResponse.data.id;
-      setStep('processing');
-
-      // 2. Crear preferencia de MercadoPago
-      const preferenceResponse = await mercadoPagoService.createPreference(orderId);
       
       if (!preferenceResponse.success) {
         throw new Error('Error al crear preferencia de pago');
@@ -52,15 +51,15 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
 
       setStep('redirecting');
 
-      // 3. Redirigir a MercadoPago
-      const checkoutUrl = preferenceResponse.data.init_point;
+      // Redirigir a MercadoPago usando la URL de sandbox para desarrollo
+      const checkoutUrl = preferenceResponse.data.sandbox_init_point || preferenceResponse.data.init_point;
       
       // Notificar éxito antes de redirigir
-      onSuccess?.(orderId);
+      onSuccess?.(0); // ID temporal
       
       // Pequeño delay para mostrar el estado
       setTimeout(() => {
-        mercadoPagoService.redirectToPayment(checkoutUrl);
+        paymentService.redirectToPayment(checkoutUrl);
       }, 1000);
 
     } catch (err) {

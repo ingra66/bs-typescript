@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle, Home, RefreshCw } from 'lucide-react';
-import mercadoPagoService from '../services/mercadopagoService';
+import paymentService from '../services/paymentService';
 
 const PaymentPending: React.FC = () => {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ const PaymentPending: React.FC = () => {
   const [timeElapsed, setTimeElapsed] = useState(0);
 
   useEffect(() => {
-    const paymentResponse = mercadoPagoService.processPaymentResponse(searchParams);
+    const paymentResponse = paymentService.processPaymentResponse(searchParams);
 
     if (paymentResponse.paymentId && paymentResponse.preferenceId) {
       setOrderDetails({

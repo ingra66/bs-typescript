@@ -6,6 +6,8 @@ import { useAuthStore } from '../stores/authStore';
 import CartItem from '../components/cart/CartItem';
 import PaymentProcessor from '../components/payment/PaymentProcessor';
 import AuthDebug from '../components/debug/AuthDebug';
+import PaymentDebug from '../components/debug/PaymentDebug';
+import QuickPaymentTest from '../components/debug/QuickPaymentTest';
 import type { CreateOrderRequest } from '../types/order';
 
 interface ShippingAddress {
@@ -133,6 +135,13 @@ const Checkout: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Debug components */}
+          <div className="lg:col-span-3 mb-6">
+            <AuthDebug />
+            <PaymentDebug />
+            <QuickPaymentTest />
+          </div>
+          
           {/* Formulario de dirección */}
           <div className="lg:col-span-2">
             <div className="bg-gray-800 rounded-lg p-6 mb-6">

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Home, Package, CreditCard } from 'lucide-react';
-import mercadoPagoService from '../services/mercadopagoService';
+import paymentService from '../services/paymentService';
 
 const PaymentSuccess: React.FC = () => {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ const PaymentSuccess: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const paymentResponse = mercadoPagoService.processPaymentResponse(searchParams);
+    const paymentResponse = paymentService.processPaymentResponse(searchParams);
 
     if (paymentResponse.paymentId && paymentResponse.preferenceId) {
       setOrderDetails({
