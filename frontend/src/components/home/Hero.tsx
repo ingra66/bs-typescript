@@ -1,18 +1,46 @@
-import React, { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { Button } from "../ui/Button";
 
 const slides = [
   {
     id: 1,
     image: "/PortadaPagWeb2.png",
-    title: "WORLDWIDE",
-    subtitle: "wearing",
+    title: "CELEBRITIES",
+    subtitle: "meets",
     brand: "beltspot",
+    description: "Descubre nuestra colección exclusiva de cinturones de alta calidad",
+  },
+  {
+    id: 2,
+    image: "/PortadaPagWeb.png",
+    title: "PREMIUM",
+    subtitle: "quality",
+    brand: "beltspot",
+    description: "Cinturones de la más alta calidad para el hombre moderno",
+  },
+  {
+    id: 3,
+    image: "/3.png",
+    title: "STYLE",
+    subtitle: "meets",
+    brand: "beltspot",
+    description: "Estilo y elegancia en cada detalle de nuestros cinturones",
   },
 ];
 
 export const Hero: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [showButton, setShowButton] = useState(false);
+
+  useEffect(() => {
+    // Mostrar el botón después de que la página cargue
+    const timer = setTimeout(() => {
+      setShowButton(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -22,115 +50,53 @@ export const Hero: React.FC = () => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
+  const handleVerColeccion = () => {
+    // Aquí puedes agregar la navegación a la colección
+    console.log('Ver colección clicked');
+  };
+
   return (
-    <section
-      className="hero-section"
-      style={{
-        width: '100vw',
-        height: '100vh',
-        margin: 0,
-        padding: 0,
-        overflow: 'hidden',
-        backgroundImage: `url(${slides[currentSlide].image})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        position: 'relative',
-      }}
-    >
-      <div className="hero-container" style={{ width: '100vw', height: '100vh', maxWidth: '100vw', margin: 0, padding: 0, position: 'relative', zIndex: 1 }}>
-        <button
-          className="nav-arrow nav-arrow-left"
-          onClick={prevSlide}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#fff',
-            position: 'absolute',
-            top: '50%',
-            left: 20,
-            transform: 'translateY(-50%)',
-            zIndex: 10,
-            padding: 0,
-            cursor: 'pointer',
-          }}
+    <section className="relative w-screen overflow-hidden" style={{ height: '100vh', marginTop: '-54px', paddingTop: '54px' }}>
+      {/* Full width image */}
+      <div className="relative w-full h-full">
+                  <img
+                    src={slides[currentSlide].image}
+                    alt={slides[currentSlide].title}
+          className="w-full h-full object-cover object-center animate-zoom transition-opacity duration-500"
+                  />
+                
+        {/* Left navigation button */}
+                  <Button
+                    onClick={prevSlide}
+          className="absolute left-6 top-1/2 transform -translate-y-1/2 w-12 h-12 text-white hover:text-gray-300 transition-all duration-200 hover:scale-110"
+                  >
+          <ChevronLeft size={32} />
+                  </Button>
+
+        {/* Right navigation button */}
+                  <Button
+                    onClick={nextSlide}
+          className="absolute right-6 top-1/2 transform -translate-y-1/2 w-12 h-12 text-white hover:text-gray-300 transition-all duration-200 hover:scale-110"
         >
-          <ChevronLeft size={48} color="#fff" />
-        </button>
-        <div className="hero-content" style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative', zIndex: 2 }}>
-          <div className="hero-text" style={{ marginLeft: '3rem' }}>
-            <h1 className="hero-title" style={{ fontWeight: 700, fontSize: '3.2rem', lineHeight: 1, margin: 0, padding: 0 }}>
-              <span
-                className="title-main"
-                style={{
-                  color: '#fff',
-                  fontFamily: 'UnifrakturCook, cursive',
-                  display: 'block',
-                  margin: 0,
-                  padding: 0,
-                  lineHeight: 1,
-                  transform: 'rotate(-10deg)',
-                }}
-              >
-                {slides[currentSlide].title}
+          <ChevronRight size={32} />
+        </Button>
+
+
+
+        {/* Red Square Button */}
+        {showButton && (
+          <div className="absolute bottom-20 left-8 animate-slide-up">
+            <Button 
+              onClick={handleVerColeccion}
+              className="bg-[#FF0000] hover:bg-black text-white px-2 py-1 text-sm font-medium transition-all duration-200 hover:scale-105 border border-white"
+                  >
+              <span className="flex items-center gap-1">
+                Ver Colección
+                <ArrowRight className="w-2.5 h-2.5" />
               </span>
-              <span
-                className="title-meets"
-                style={{
-                  color: '#fff',
-                  fontFamily: 'Great Vibes, cursive',
-                  display: 'block',
-                  margin: 0,
-                  padding: 0,
-                  marginTop: '-1.2rem',
-                  marginBottom: '-0.5rem',
-                  marginLeft: '1.2rem',
-                  fontSize: '2.5rem',
-                  lineHeight: 1,
-                  position: 'relative',
-                  zIndex: 2,
-                  transform: 'rotate(-10deg)',
-                }}
-              >
-                {slides[currentSlide].subtitle}
-              </span>
-              <span
-                className="title-brand"
-                style={{
-                  color: '#fff',
-                  textTransform: 'lowercase',
-                  fontWeight: 600,
-                  fontFamily: 'inherit',
-                  display: 'block',
-                  margin: 0,
-                  padding: 0,
-                  lineHeight: 1,
-                  transform: 'rotate(-10deg)',
-                }}
-              >
-                {slides[currentSlide].brand}
-              </span>
-            </h1>
-          </div>
-        </div>
-        <button
-          className="nav-arrow nav-arrow-right"
-          onClick={nextSlide}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#fff',
-            position: 'absolute',
-            top: '50%',
-            right: 20,
-            transform: 'translateY(-50%)',
-            zIndex: 10,
-            padding: 0,
-            cursor: 'pointer',
-          }}
-        >
-          <ChevronRight size={48} color="#fff" />
-        </button>
+                  </Button>
+                </div>
+        )}
       </div>
     </section>
   );

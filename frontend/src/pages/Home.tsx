@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Hero } from '@/components/home/Hero';
+import { BrandSection } from '@/components/home/BrandSection';
 import { BrandGrid } from '@/components/home/BrandGrid';
 import { CategoryGrid } from '@/components/categories/CategoryGrid';
 import { ProductCarousel } from '@/components/products/ProductCarousel';
@@ -38,6 +39,7 @@ export const Home: React.FC = () => {
   return (
     <div className="home-content">
       <Hero />
+      <BrandSection />
       <CategoryGrid categories={categories as any} onCategoryClick={handleCategoryClick as any} loading={loading} />
       <ProductCarousel
         products={products.map(p => ({

@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Prevenir overflow horizontal */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
+#root {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
+@keyframes spin-y {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+.animate-spin-y {
+  animation: spin-y 6s linear infinite;
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.animate-spin-y::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('/logo-beltspot.png') no-repeat center center;
+  background-size: contain;
+  transform: translateZ(-15px);
+  filter: brightness(0) contrast(0);
+  opacity: 0.8;
+}
+
+.animate-spin-y::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('/logo-beltspot.png') no-repeat center center;
+  background-size: contain;
+  transform: translateZ(-30px);
+  filter: brightness(0) contrast(0);
+  opacity: 0.6;
+} 

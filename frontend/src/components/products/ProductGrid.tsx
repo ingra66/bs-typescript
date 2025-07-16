@@ -1,6 +1,8 @@
 import React from 'react';
 import ProductCard from './ProductCard';
 import type { Product } from '../../types/product';
+import { Card, CardContent } from "../ui/Card";
+import { Loader2 } from "lucide-react";
 
 interface ProductGridProps {
   products: Product[];
@@ -17,40 +19,32 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 }) => {
   if (loading) {
     return (
-      <section style={{ 
-        width: '100vw',
-        margin: 0,
-        padding: '60px 0',
-        position: 'relative',
-        left: '50%',
-        right: '50%',
-        marginLeft: '-50vw',
-        marginRight: '-50vw',
-        background: '#111'
-      }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px' }}>
+      <section className="w-full py-16 bg-gradient-to-b from-gray-900 to-gray-800">
+        <div className="max-w-7xl mx-auto px-4">
           {title && (
-            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-              <h2 style={{ fontSize: '2rem', color: '#d90429', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>{title}</h2>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+                {title}
+              </h2>
               {subtitle && (
-                <p style={{ color: '#fff', fontSize: '1rem', marginTop: '10px' }}>{subtitle}</p>
+                <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                  {subtitle}
+                </p>
               )}
             </div>
           )}
-          <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '32px'
-          }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, index) => (
-              <div key={index} style={{ 
-                aspectRatio: '1',
-                background: '#181818',
-                opacity: 0.5,
-                display: 'flex',
-                flexDirection: 'column',
-                border: '2px solid transparent'
-              }} />
+              <Card key={index} className="animate-pulse bg-gray-800/50 border-gray-700/50 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <div className="w-full h-48 bg-gray-700 rounded-lg mb-4" />
+                  <div className="space-y-3">
+                    <div className="w-3/4 h-4 bg-gray-700 rounded" />
+                    <div className="w-1/2 h-4 bg-gray-700 rounded" />
+                    <div className="w-1/3 h-6 bg-gray-700 rounded" />
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -59,37 +53,42 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   }
 
   return (
-    <section style={{ 
-      width: '100vw',
-      margin: 0,
-      padding: '60px 0',
-      position: 'relative',
-      left: '50%',
-      right: '50%',
-      marginLeft: '-50vw',
-      marginRight: '-50vw',
-      background: '#111'
-    }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px' }}>
+    <section className="w-full py-16 bg-gradient-to-b from-gray-900 to-gray-800">
+      <div className="max-w-7xl mx-auto px-4">
         {title && (
-          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <h2 style={{ fontSize: '2rem', color: '#d90429', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>{title}</h2>
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 mb-4">
+              <div className="w-8 h-0.5 bg-gradient-to-r from-transparent to-red-500"></div>
+              <span className="text-red-500 text-sm font-medium uppercase tracking-wider">
+                Productos Destacados
+              </span>
+              <div className="w-8 h-0.5 bg-gradient-to-l from-transparent to-red-500"></div>
+            </div>
+            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+              {title}
+            </h2>
             {subtitle && (
-              <p style={{ color: '#fff', fontSize: '1rem', marginTop: '10px' }}>{subtitle}</p>
+              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                {subtitle}
+              </p>
             )}
           </div>
         )}
+        
         {products.length === 0 ? (
-          <div style={{ textAlign: 'center', marginTop: '40px' }}>
-            <div style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '10px' }}>No se encontraron productos</div>
-            <p style={{ color: '#999' }}>Intenta con otros filtros o vuelve más tarde</p>
+          <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gray-800 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">
+              No se encontraron productos
+            </h3>
+            <p className="text-gray-400">
+              Intenta con otros filtros o vuelve más tarde
+            </p>
           </div>
         ) : (
-          <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '32px'
-          }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => (
               <ProductCard
                 key={product.id}

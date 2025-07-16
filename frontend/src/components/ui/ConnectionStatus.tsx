@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { checkBackendAvailability } from '@/config/api';
-import { Wifi, WifiOff } from 'lucide-react';
+import { Plug, WifiOff } from 'lucide-react';
 
 export const ConnectionStatus: React.FC = () => {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
@@ -40,8 +40,8 @@ export const ConnectionStatus: React.FC = () => {
     <div className="flex items-center space-x-1">
       {isConnected ? (
         <>
-          <Wifi className="w-3 h-3 text-green-400" />
-          <span className="text-xs text-green-400">Online</span>
+          <Plug className="w-3 h-3 text-green-400" />
+          <span className="text-xs text-green-400">Plugged in</span>
         </>
       ) : (
         <>

@@ -1,4 +1,5 @@
 import React from "react";
+import { Card, CardContent } from "../ui/Card";
 
 interface Brand {
   id: number;
@@ -61,11 +62,8 @@ export const BrandGrid: React.FC = () => {
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
           {brands.map((brand) => (
-            <div
-              key={brand.id}
-              className="brand-card bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors duration-300 cursor-pointer group"
-            >
-              <div className="flex flex-col items-center text-center">
+            <Card key={brand.id} className="group cursor-pointer hover:shadow-lg transition-shadow duration-300 bg-gray-700 hover:bg-gray-600 p-4 flex flex-col items-center text-center">
+              <CardContent className="flex flex-col items-center">
                 <div className="w-16 h-16 mb-3 flex items-center justify-center">
                   <img
                     src={brand.logo}
@@ -85,8 +83,8 @@ export const BrandGrid: React.FC = () => {
                     {brand.description}
                   </p>
                 )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>

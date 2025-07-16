@@ -1,10 +1,8 @@
 import React, { useState } from "react";
-import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
-import './ProductCarousel.css';
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
-// import cartService from '../../services/cartService';
-// import { useAuthStore } from '../../stores/authStore';
 import { useCartStore } from '../../stores/cartStore';
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface ProductCarouselProduct {
   id: number;
@@ -21,21 +19,19 @@ interface ProductCarouselProps {
 
 export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, title }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const itemsPerView = 5;
+  const itemsPerView = 4;
 
   const navigate = useNavigate();
-  // const { isAuthenticated } = useAuthStore();
   const { addItem } = useCartStore();
 
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + itemsPerView >= products.length ? 0 : prevIndex + 1));
+    setCurrentIndex((prevIndex) => (prevIndex + 1 >= products.length ? 0 : prevIndex + 1));
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex === 0 ? Math.max(0, products.length - itemsPerView) : prevIndex - 1));
+    setCurrentIndex((prevIndex) => (prevIndex === 0 ? products.length - 1 : prevIndex - 1));
   };
 
-  // NUEVA FUNCIÓN: agregar al carrito usando el store local
   const handleAddToCart = (product: ProductCarouselProduct) => {
     const item = {
       id: product.id,
@@ -43,63 +39,118 @@ export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, titl
       price: Number(product.price),
       image: product.image,
       quantity: 1,
-      stock: 99 // Opcional, puedes ajustar si tienes stock real
+      stock: 99
     };
     addItem(item);
     alert('Producto agregado al carrito');
   };
 
-  const visibleProducts = products.slice(currentIndex, currentIndex + itemsPerView);
+  // Crear array de productos visibles
+  const getVisibleProducts = () => {
+    const visibleProducts = [];
+    for (let i = 0; i < itemsPerView; i++) {
+      const index = (currentIndex + i) % products.length;
+      if (products[index]) {
+        visibleProducts.push({
+          ...products[index],
+          originalIndex: index
+        });
+      }
+    }
+    return visibleProducts;
+  };
+
+  const visibleProducts = getVisibleProducts();
 
   return (
-    <section className="lux-carousel-section">
-      <div className="lux-carousel-container">
-        <h2 className="lux-carousel-title">{title}</h2>
-        <button
-          className="lux-carousel-arrow lux-carousel-arrow-left"
-          onClick={prevSlide}
-        >
-          <ChevronLeft size={22} />
-        </button>
-        <button
-          className="lux-carousel-arrow lux-carousel-arrow-right"
-          onClick={nextSlide}
-        >
-          <ChevronRight size={22} />
-        </button>
-        <div className="lux-carousel-row">
-          {visibleProducts.map((product) => (
-            <div
-              key={product.id}
-              className="lux-product-card"
-              style={{ cursor: 'pointer' }}
-              onClick={e => {
-                // Evita que el click en el botón de carrito navegue
-                if ((e.target as HTMLElement).closest('.lux-btn-cart')) return;
-                navigate(`/producto/${product.id}`);
-              }}
-            >
-              <div className="lux-product-image">
-                <img
-                  src={product.image || "/placeholder.svg"}
-                  alt={product.name}
-                />
-              </div>
-              <div className="lux-product-title">{product.name}</div>
-              <div className="lux-product-price">${Number(product.price).toFixed(2)}</div>
-              <div className="lux-product-actions">
-                <button
-                  className="lux-btn-action lux-btn-cart"
-                  onClick={e => { e.stopPropagation(); handleAddToCart(product); }}
-                  // disabled={loadingId === product.id}
-                  title="Agregar al carrito"
-                  // style={loadingId === product.id ? { opacity: 0.7, cursor: 'wait' } : {}}
-                >
-                  <ShoppingCart size={18} style={{ marginRight: 6 }} /> Agregar al carrito
-                </button>
-              </div>
-            </div>
-          ))}
+    <section className="bg-black py-16 px-4">
+      <div className="max-w-7xl mx-auto">
+        {title && (
+          <h2 className="text-3xl font-bold text-center mb-12 text-white">
+            {title}
+          </h2>
+        )}
+        
+        <div className="relative overflow-hidden">
+          {/* Flecha izquierda */}
+          <button
+            onClick={prevSlide}
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 text-white hover:text-gray-300 transition-all duration-200 hover:scale-110"
+          >
+            <ChevronLeft size={32} />
+          </button>
+
+          {/* Flecha derecha */}
+          <button
+            onClick={nextSlide}
+            className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 text-white hover:text-gray-300 transition-all duration-200 hover:scale-110"
+          >
+            <ChevronRight size={32} />
+          </button>
+
+          {/* Contenedor del grid con animación suave */}
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-16"
+            key={currentIndex}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{
+              duration: 0.4,
+              ease: "easeInOut"
+            }}
+          >
+            {visibleProducts.map((product, index) => (
+              <motion.div
+                key={`${product.id}-${currentIndex}-${index}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.3,
+                  ease: "easeOut",
+                  delay: index * 0.1
+                }}
+                className="bg-transparent transition-all duration-300 cursor-pointer group aspect-square flex flex-col"
+                onClick={() => navigate(`/producto/${product.id}`)}
+              >
+                {/* Imagen del producto */}
+                <div className="flex-1 flex items-center justify-center p-2">
+                  <img
+                    src={product.image || "/placeholder.svg"}
+                    alt={product.name}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+
+                {/* Información minimalista */}
+                <div className="p-3 text-center">
+                  {/* Nombre del producto */}
+                  <div className="text-xs text-gray-300 mb-1 line-clamp-2">
+                    {product.name}
+                  </div>
+                  {/* Precio */}
+                  <div className="text-sm font-bold text-white">
+                    ${Number(product.price).toFixed(2)}
+                  </div>
+                </div>
+
+                {/* Botón minimalista como el Hero */}
+                <div className="p-3 pt-0">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(product);
+                    }}
+                    className="w-full bg-[#FF0000] hover:bg-black text-white px-2 py-1 text-xs font-medium transition-all duration-200 border border-white"
+                  >
+                    Agregar al carrito
+                  </motion.button>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </div>
     </section>

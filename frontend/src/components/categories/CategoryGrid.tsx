@@ -26,36 +26,70 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   onCategoryClick
 }) => {
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>Cargando categorías...</div>;
+    return (
+      <section className="bg-white py-16 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center text-gray-500">Cargando categorías...</div>
+        </div>
+      </section>
+    );
   }
+  
   if (!categories || categories.length === 0) {
-    return <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>No hay categorías para mostrar</div>;
+    return (
+      <section className="bg-white py-16 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center text-gray-500">No hay categorías para mostrar</div>
+        </div>
+      </section>
+    );
   }
+
   return (
-    <section className="product-grid-section" style={{ margin: 0, padding: 0 }}>
-      <div className="product-grid-container" style={{ margin: 0, padding: 0 }}>
-        <div className="product-grid">
-          {categories.map((category) => (
-            <div
-              key={category.id}
-              className={`product-card ${category.backgroundColor === "black" ? "product-card-black" : "product-card-light"}`}
-              onClick={() => onCategoryClick?.(category)}
-              style={{ cursor: onCategoryClick ? 'pointer' : undefined }}
-            >
-              <div className="product-image-container">
-                <img
-                  src={category.image || PLACEHOLDER_IMAGE}
-                  alt={category.name || category.title || ''}
-                  className="product-image"
-                  style={{ objectFit: "contain", width: "100%", height: "100%" }}
-                />
+    <section className="bg-white py-16 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categories.slice(0, 6).map((category, index) => {
+            const isBlackBackground = index % 2 === 0; // Alternar fondos
+            
+            return (
+              <div
+                key={category.id}
+                className={`relative cursor-pointer group transition-all duration-300 hover:scale-105 rounded-2xl overflow-hidden ${
+                  isBlackBackground ? 'bg-black' : 'bg-gray-200'
+                }`}
+                onClick={() => onCategoryClick?.(category)}
+              >
+                {/* Imagen de la categoría */}
+                <div className="relative h-64 flex items-center justify-center p-6">
+                  <img
+                    src={category.image || PLACEHOLDER_IMAGE}
+                    alt={category.name || category.title || ''}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
+                
+                {/* Texto de la categoría */}
+                <div className={`absolute bottom-0 left-0 right-0 p-6 text-center ${
+                  isBlackBackground ? 'text-white' : 'text-black'
+                }`}>
+                  <h3 className="text-2xl font-bold uppercase tracking-wide">
+                    {category.name || category.title}
+                  </h3>
+                  {category.subtitle && (
+                    <p className="text-sm mt-1 opacity-80">
+                      {category.subtitle}
+                    </p>
+                  )}
+                </div>
+                
+                {/* Overlay sutil en hover */}
+                <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 ${
+                  isBlackBackground ? 'bg-white' : 'bg-black'
+                }`}></div>
               </div>
-              <div className="product-text">
-                {(category.subtitle || category.description) && <span className="product-subtitle">{category.subtitle || category.description}</span>}
-                <h3 className="product-title">{category.name || category.title}</h3>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

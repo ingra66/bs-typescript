@@ -26,12 +26,12 @@ function App() {
   return (
     <>
       {!isAdminRoute && (
-        <div className="min-h-screen bg-gray-900 flex flex-col">
+        <div className="min-h-screen bg-black flex flex-col w-full">
           <CartSync />
           <Header />
           {/* <CartDebug /> */}
       
-          <main className="flex-1">
+          <main className="flex-1 overflow-x-hidden pt-[54px]">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />

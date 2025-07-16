@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Facebook, Instagram, Search, Heart, User, Menu, X, LogOut, Settings, UserCheck, ChevronDown } from "lucide-react";
+import { Facebook, Instagram, Search, Heart, User, Menu, X, LogOut, Settings, UserCheck, ChevronDown, ShoppingCart, Bell } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
+import { useCartStore } from "@/stores/cartStore";
 import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
 import CartIcon from "@/components/ui/CartIcon";
 import CartModal from "@/components/cart/CartModal";
+import { Card, CardContent } from "../ui/Card";
+import { Button } from "../ui/Button";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 
 interface Category {
   id: number;
@@ -12,11 +17,69 @@ interface Category {
   slug: string;
 }
 
+// Componente de botón sin círculo
+const IconButton: React.FC<{
+  icon: React.ComponentType<{ size: number; className?: string }>;
+  badge?: string;
+  badgeColor?: string;
+  onClick?: () => void;
+}> = ({ icon: Icon, badge, badgeColor, onClick }) => {
+  return (
+    <button
+      onClick={onClick}
+      className="header-icon-btn"
+      style={{
+        padding: '0',
+        backgroundColor: 'transparent',
+        border: 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        transition: 'all 0.2s ease',
+        cursor: 'pointer'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'scale(1.1)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'scale(1)';
+      }}
+    >
+      <Icon size={20} className="text-white hover:text-red-500 transition-colors duration-200" />
+      {badge && (
+        <span 
+          style={{
+            position: 'absolute',
+            top: '-6px',
+            right: '-6px',
+            width: '14px',
+            height: '14px',
+            backgroundColor: '#EF4444',
+            color: 'white',
+            fontSize: '9px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            lineHeight: '1',
+            fontWeight: 'bold'
+          }}
+        >
+          {badge}
+        </span>
+      )}
+    </button>
+  );
+};
+
 export const Header: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [showCategories, setShowCategories] = useState(true);
   const { user, isAuthenticated, logout } = useAuthStore();
+  const { toggleCart, getTotalItems } = useCartStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +89,27 @@ export const Header: React.FC = () => {
         setCategories(data.data || []);
       })
       .catch(() => setCategories([]));
+  }, []);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down - hide categories
+        setShowCategories(false);
+      } else if (currentScrollY < lastScrollY) {
+        // Scrolling up - show categories
+        setShowCategories(true);
+      }
+      
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const toggleMobileMenu = () => {
@@ -52,509 +136,274 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <>
-      <header style={{
-        backgroundColor: '#000000',
-        borderBottom: '1px solid #333',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
-        {/* Top Section */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '12px 24px',
-          maxWidth: '1400px',
-          margin: '0 auto'
-        }}>
-          {/* Left Side - Social Icons */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: '#1976d2',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}>
-              <Facebook size={14} style={{ color: 'white' }} />
-            </div>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: '#c2185b',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}>
-              <Instagram size={14} style={{ color: 'white' }} />
-            </div>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: '#333',
-              border: '1px solid #555',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}>
-              <Search size={14} style={{ color: '#ccc' }} />
-            </div>
-            <ConnectionStatus />
-          </div>
+    <div className="bg-black shadow-sm w-full fixed top-0 left-0 right-0 z-50">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-2 py-px h-[54px] w-full">
+        {/* Izquierda: Social */}
+        <div className="flex items-center gap-2">
+          <IconButton icon={Facebook} />
+          <IconButton icon={Instagram} />
+          <IconButton icon={Search} />
+          <ConnectionStatus />
+        </div>
 
-          {/* Center - Logo */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            position: 'relative'
-          }}>
-            <Link to="/" style={{ textDecoration: 'none' }}>
-              <img 
-                src="/logo-beltspot.png" 
-                alt="beltspot logo" 
-                style={{
-                  height: '50px',
-                  width: 'auto',
-                  animation: 'spin 20s linear infinite'
-                }}
-              />
-            </Link>
-          </div>
+        {/* Centro: Logo */}
+        <Link to="/" className="flex items-center justify-center">
+          <img
+            src="/logo-beltspot.png"
+            alt="BeltSpot"
+            className="h-16 w-auto object-contain animate-spin-y"
+          />
+        </Link>
 
-          {/* Right Side - User Icons */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: '#333',
-              border: '1px solid #555',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}>
-              <Heart size={14} style={{ color: '#ccc' }} />
-            </div>
-            
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={toggleUserMenu}
+        {/* Derecha: Iconos */}
+        <div className="flex items-center gap-2">
+          <IconButton icon={Heart} badge="3" />
+          <IconButton icon={Bell} badge="2" />
+          <IconButton icon={ShoppingCart} badge={getTotalItems().toString()} onClick={toggleCart} />
+
+          {/* Usuario */}
+          <DropdownMenu.Root open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
+            <DropdownMenu.Trigger asChild>
+              <button 
                 style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: '#333',
-                  border: '1px solid #555',
+                  padding: '0',
+                  backgroundColor: 'transparent',
+                  border: 'none',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer'
                 }}
-                aria-label="Menú de usuario"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
               >
                 {isAuthenticated ? (
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    backgroundColor: '#1976d2',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '10px',
-                    fontWeight: 600
-                  }}>
+                  <span 
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      backgroundColor: '#DC2626',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      lineHeight: '1'
+                    }}
+                  >
                     {user?.name?.charAt(0).toUpperCase()}
-                  </div>
+                  </span>
                 ) : (
-                  <User size={14} style={{ color: '#ccc' }} />
+                  <User size={20} className="text-white hover:text-red-500 transition-colors duration-200" />
                 )}
               </button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content className="z-50 min-w-[180px] bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-2 mt-1">
+              {isAuthenticated ? (
+                <>
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-sm text-gray-100 font-semibold mb-1">Hola, {user?.name}</p>
+                    <p className="text-xs text-gray-400">{user?.email}</p>
+                  </div>
+                  <DropdownMenu.Item asChild>
+                    <Button
+                      onClick={() => handleUserAction('profile')}
+                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
+                    >
+                      <User size={14} />
+                      Mi Perfil
+                    </Button>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item asChild>
+                    <Button
+                      onClick={() => navigate('/orders')}
+                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
+                    >
+                      <ShoppingCart size={14} />
+                      Mis Pedidos
+                    </Button>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item asChild>
+                    <Button
+                      onClick={handleLogout}
+                      className="w-full text-left bg-transparent hover:bg-red-900 text-red-400 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
+                    >
+                      <LogOut size={14} />
+                      Cerrar sesión
+                    </Button>
+                  </DropdownMenu.Item>
+                </>
+              ) : (
+                <>
+                  <DropdownMenu.Item asChild>
+                    <Button
+                      onClick={() => handleUserAction('login')}
+                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
+                    >
+                      <UserCheck size={14} />
+                      Iniciar sesión
+                    </Button>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item asChild>
+                    <Button
+                      onClick={() => navigate('/register')}
+                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
+                    >
+                      <User size={14} />
+                      Registrarse
+                    </Button>
+                  </DropdownMenu.Item>
+                </>
+              )}
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
+        </div>
+      </div>
 
-              {/* User Menu Dropdown */}
-              {isUserMenuOpen && (
-                <div style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '100%',
-                  marginTop: '8px',
-                  width: '200px',
-                  backgroundColor: '#111',
-                  border: '1px solid #333',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                  zIndex: 50,
-                  overflow: 'hidden'
-                }}>
-                  <div style={{ padding: '8px 0' }}>
+      {/* Navegación Mejorada */}
+      <div className={`bg-black w-full transition-all duration-300 ${showCategories ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+        <div className="max-w-7xl mx-auto px-4 py-1 w-full">
+          <div className="flex items-center justify-between">
+            <nav className="hidden lg:flex items-center justify-center flex-1 gap-4">
+              {categories.slice(0, 8).map((cat) => (
+                <div key={cat.id} className="group relative">
+                  <Link
+                    to={`/category/${cat.slug}`}
+                    className="text-xs text-gray-400 hover:text-white uppercase tracking-wide transition-colors duration-200 cursor-pointer no-underline"
+                  >
+                    {cat.name}
+                  </Link>
+                </div>
+              ))}
+            </nav>
+
+            <Button
+              onClick={toggleMobileMenu}
+              className="lg:hidden w-6 h-6 p-0 rounded-full bg-gray-800 border border-gray-600 hover:bg-gray-700 flex items-center justify-center"
+            >
+              <Menu size={14} className="text-gray-300" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] lg:hidden">
+          <div className="bg-gray-900 h-full w-80 max-w-[90vw] shadow-xl">
+            <div className="bg-gray-900 border-b border-gray-700 p-6">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <img 
+                    src="/logo-beltspot.png" 
+                    alt="BeltSpot" 
+                    className="h-8 w-auto"
+                  />
+                  <span className="text-xl font-bold text-white">BeltSpot</span>
+                </div>
+                <Button
+                  onClick={toggleMobileMenu}
+                  className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center p-0"
+                >
+                  <X size={16} className="text-gray-300" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="flex-1 p-6">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-white font-semibold mb-4 text-lg">Categorías</h3>
+                  <div className="space-y-2">
+                    {categories.map((cat) => (
+                      <Link
+                        key={cat.id}
+                        to={`/category/${cat.slug}`}
+                        onClick={toggleMobileMenu}
+                        className="block text-gray-300 hover:text-white py-2 px-3 rounded-md transition-all duration-200 hover:bg-gray-800"
+                      >
+                        {cat.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="border-t border-gray-700 pt-6">
+                  <h3 className="text-white font-semibold mb-4 text-lg">Cuenta</h3>
+                  <div className="space-y-2">
                     {isAuthenticated ? (
                       <>
-                        <div style={{
-                          padding: '12px 16px',
-                          borderBottom: '1px solid #333'
-                        }}>
-                          <p style={{
-                            fontSize: '14px',
-                            color: '#fff',
-                            margin: '0 0 4px 0',
-                            fontWeight: 500
-                          }}>
-                            Hola, {user?.name}
-                          </p>
-                          <p style={{
-                            fontSize: '12px',
-                            color: '#ccc',
-                            margin: 0
-                          }}>
-                            {user?.email}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleUserAction('profile')}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            width: '100%',
-                            padding: '12px 16px',
-                            fontSize: '14px',
-                            color: '#fff',
-                            backgroundColor: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.2s'
+                        <Button
+                          onClick={() => {
+                            handleUserAction('profile');
+                            toggleMobileMenu();
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#333';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
+                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200 flex items-center gap-2"
                         >
-                          <Settings size={16} style={{ marginRight: '8px' }} />
+                          <User size={16} />
                           Mi Perfil
-                        </button>
-                        <button
-                          onClick={handleLogout}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            width: '100%',
-                            padding: '12px 16px',
-                            fontSize: '14px',
-                            color: '#ff6b6b',
-                            backgroundColor: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.2s'
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            navigate('/orders');
+                            toggleMobileMenu();
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#4a1a1a';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
+                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200 flex items-center gap-2"
                         >
-                          <LogOut size={16} style={{ marginRight: '8px' }} />
-                          Cerrar Sesión
-                        </button>
+                          <ShoppingCart size={16} />
+                          Mis Pedidos
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            handleLogout();
+                            toggleMobileMenu();
+                          }}
+                          className="w-full text-left bg-transparent hover:bg-red-900 text-red-400 py-2 px-3 rounded-md transition-all duration-200 flex items-center gap-2"
+                        >
+                          <LogOut size={16} />
+                          Cerrar sesión
+                        </Button>
                       </>
                     ) : (
                       <>
-                        <button
-                          onClick={() => handleUserAction('login')}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            width: '100%',
-                            padding: '12px 16px',
-                            fontSize: '14px',
-                            color: '#fff',
-                            backgroundColor: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.2s'
+                        <Button
+                          onClick={() => {
+                            handleUserAction('login');
+                            toggleMobileMenu();
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#333';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
+                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200 flex items-center gap-2"
                         >
-                          <UserCheck size={16} style={{ marginRight: '8px' }} />
-                          Iniciar Sesión
-                        </button>
-                        <Link
-                          to="/register"
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            width: '100%',
-                            padding: '12px 16px',
-                            fontSize: '14px',
-                            color: '#fff',
-                            backgroundColor: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.2s',
-                            textDecoration: 'none'
+                          <UserCheck size={16} />
+                          Iniciar sesión
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            navigate('/register');
+                            toggleMobileMenu();
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#333';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                          }}
+                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200 flex items-center gap-2"
                         >
-                          <User size={16} style={{ marginRight: '8px' }} />
+                          <User size={16} />
                           Registrarse
-                        </Link>
+                        </Button>
                       </>
                     )}
                   </div>
                 </div>
-              )}
+              </div>
             </div>
-            
-            <CartIcon />
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div style={{
-            display: 'none',
-            cursor: 'pointer',
-            padding: '8px'
-          }}>
-            {isMobileMenuOpen ? (
-              <X size={20} onClick={toggleMobileMenu} style={{ color: '#ccc' }} />
-            ) : (
-              <Menu size={20} onClick={toggleMobileMenu} style={{ color: '#ccc' }} />
-            )}
           </div>
         </div>
-        
-        {/* Navigation Bar */}
-        <nav style={{
-          borderTop: '1px solid #333',
-          backgroundColor: '#000000'
-        }}>
-          <div style={{
-            maxWidth: '1400px',
-            margin: '0 auto',
-            padding: '0 24px'
-          }}>
-            <ul style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              listStyle: 'none',
-              margin: 0,
-              padding: '16px 0',
-              gap: '32px',
-              flexWrap: 'wrap'
-            }}>
-              {categories.map((cat) => (
-                <li key={cat.id} style={{ position: 'relative' }}>
-                  <a 
-                    href={`/category/${cat.slug}`}
-                    style={{
-                      color: '#ccc',
-                      textDecoration: 'none',
-                      fontSize: '12px',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      transition: 'color 0.2s',
-                      cursor: 'pointer'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = '#ff6b6b';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = '#ccc';
-                    }}
-                  >
-                    {cat.name}
-                    <ChevronDown size={10} style={{ color: '#666' }} />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </nav>
-        
-        {/* Mobile Menu Overlay */}
-        {isMobileMenuOpen && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.8)',
-            zIndex: 200,
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <div style={{
-              backgroundColor: '#000000',
-              padding: '20px',
-              borderBottom: '1px solid #333'
-            }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <img 
-                  src="/logo-beltspot.png" 
-                  alt="beltspot logo" 
-                  style={{
-                    height: '35px',
-                    width: 'auto'
-                  }}
-                />
-                <X size={24} onClick={toggleMobileMenu} style={{ color: '#ccc', cursor: 'pointer' }} />
-              </div>
-            </div>
-            <div style={{
-              backgroundColor: '#000000',
-              flex: 1,
-              padding: '20px'
-            }}>
-              <div style={{ marginBottom: '24px' }}>
-                {categories.map((cat) => (
-                  <a 
-                    key={cat.id}
-                    href={`/category/${cat.slug}`} 
-                    onClick={toggleMobileMenu}
-                    style={{
-                      display: 'block',
-                      padding: '12px 0',
-                      color: '#ccc',
-                      textDecoration: 'none',
-                      fontSize: '16px',
-                      borderBottom: '1px solid #333'
-                    }}
-                  >
-                    {cat.name}
-                  </a>
-                ))}
-              </div>
-              <div style={{ borderTop: '1px solid #333', paddingTop: '20px' }}>
-                {isAuthenticated ? (
-                  <>
-                    <Link 
-                      to="/profile" 
-                      onClick={toggleMobileMenu}
-                      style={{
-                        display: 'block',
-                        padding: '12px 0',
-                        color: '#ccc',
-                        textDecoration: 'none',
-                        fontSize: '16px'
-                      }}
-                    >
-                      Mi Perfil
-                    </Link>
-                    <button 
-                      onClick={() => { handleLogout(); toggleMobileMenu(); }}
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '12px 0',
-                        color: '#ff6b6b',
-                        backgroundColor: 'transparent',
-                        border: 'none',
-                        fontSize: '16px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Cerrar Sesión
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link 
-                      to="/login" 
-                      onClick={toggleMobileMenu}
-                      style={{
-                        display: 'block',
-                        padding: '12px 0',
-                        color: '#ccc',
-                        textDecoration: 'none',
-                        fontSize: '16px'
-                      }}
-                    >
-                      Iniciar Sesión
-                    </Link>
-                    <Link 
-                      to="/register" 
-                      onClick={toggleMobileMenu}
-                      style={{
-                        display: 'block',
-                        padding: '12px 0',
-                        color: '#ccc',
-                        textDecoration: 'none',
-                        fontSize: '16px'
-                      }}
-                    >
-                      Registrarse
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Overlay para cerrar el menú de usuario */}
-        {isUserMenuOpen && (
-          <div 
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 40
-            }}
-            onClick={toggleUserMenu}
-          />
-        )}
-      </header>
-
-      {/* Cart Modal */}
+      )}
+      
       <CartModal />
-    </>
+    </div>
   );
 }; 
