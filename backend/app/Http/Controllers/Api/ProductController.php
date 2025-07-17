@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
@@ -12,6 +13,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ProductController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
+
     /**
      * Display a listing of products with advanced filtering
      */
@@ -127,13 +135,9 @@ class ProductController extends Controller
             $counter++;
         }
 
-        // Manejar imágenes
+        // Manejar imágenes usando el servicio
         if ($request->hasFile('images')) {
-            $images = [];
-            foreach ($request->file('images') as $image) {
-                $images[] = $image->store('products', 'public');
-            }
-            $validated['images'] = $images;
+            $validated['images'] = $this->imageService->processProductImages($request->file('images'));
         }
 
         $product = Product::create($validated);
@@ -206,20 +210,16 @@ class ProductController extends Controller
             }
         }
 
-        // Manejar imágenes
+        // Manejar imágenes usando el servicio
         if ($request->hasFile('images')) {
             // Eliminar imágenes anteriores si existen
             if ($product->images) {
                 foreach ($product->images as $image) {
-                    \Storage::disk('public')->delete($image);
+                    $this->imageService->deleteImage($image);
                 }
             }
             
-            $images = [];
-            foreach ($request->file('images') as $image) {
-                $images[] = $image->store('products', 'public');
-            }
-            $validated['images'] = $images;
+            $validated['images'] = $this->imageService->processProductImages($request->file('images'));
         }
 
         $product->update($validated);
@@ -239,7 +239,7 @@ class ProductController extends Controller
         // Eliminar imágenes si existen
         if ($product->images) {
             foreach ($product->images as $image) {
-                \Storage::disk('public')->delete($image);
+                $this->imageService->deleteImage($image);
             }
         }
 

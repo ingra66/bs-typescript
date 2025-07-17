@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -86,13 +89,113 @@ class Product extends Model
         return $query->where('category_id', $categoryId);
     }
 
-    // Métodos
+    // Métodos para manejo de imágenes
     public function getMainImageAttribute()
     {
         if ($this->images && count($this->images) > 0) {
             return asset('storage/' . $this->images[0]);
         }
         return asset('images/default-product.jpg');
+    }
+
+    public function getThumbnailAttribute()
+    {
+        if ($this->images && count($this->images) > 0) {
+            $imagePath = $this->images[0];
+            $thumbnailPath = str_replace('.', '_thumb.', $imagePath);
+            
+            // Verificar si existe el thumbnail
+            if (Storage::disk('public')->exists($thumbnailPath)) {
+                return asset('storage/' . $thumbnailPath);
+            }
+            
+            // Si no existe, crear el thumbnail
+            return $this->createThumbnail($imagePath, $thumbnailPath);
+        }
+        return asset('images/default-product-thumb.jpg');
+    }
+
+    public function getMediumImageAttribute()
+    {
+        if ($this->images && count($this->images) > 0) {
+            $imagePath = $this->images[0];
+            $mediumPath = str_replace('.', '_medium.', $imagePath);
+            
+            if (Storage::disk('public')->exists($mediumPath)) {
+                return asset('storage/' . $mediumPath);
+            }
+            
+            return $this->createMediumImage($imagePath, $mediumPath);
+        }
+        return asset('images/default-product-medium.jpg');
+    }
+
+    public function getAllImagesAttribute()
+    {
+        if (!$this->images) {
+            return [];
+        }
+
+        $images = [];
+        foreach ($this->images as $image) {
+            $images[] = [
+                'original' => asset('storage/' . $image),
+                'thumbnail' => asset('storage/' . str_replace('.', '_thumb.', $image)),
+                'medium' => asset('storage/' . str_replace('.', '_medium.', $image)),
+            ];
+        }
+        return $images;
+    }
+
+    private function createThumbnail($originalPath, $thumbnailPath)
+    {
+        try {
+            $imageManager = new ImageManager(new Driver());
+            $image = $imageManager->read(Storage::disk('public')->path($originalPath));
+            $image->cover(300, 300);
+            
+            Storage::disk('public')->put($thumbnailPath, $image->encode());
+            return asset('storage/' . $thumbnailPath);
+        } catch (\Exception $e) {
+            return asset('images/default-product-thumb.jpg');
+        }
+    }
+
+    private function createMediumImage($originalPath, $mediumPath)
+    {
+        try {
+            $imageManager = new ImageManager(new Driver());
+            $image = $imageManager->read(Storage::disk('public')->path($originalPath));
+            $image->scaleDown(600, 600);
+            
+            Storage::disk('public')->put($mediumPath, $image->encode());
+            return asset('storage/' . $mediumPath);
+        } catch (\Exception $e) {
+            return asset('images/default-product-medium.jpg');
+        }
+    }
+
+    public function optimizeImages()
+    {
+        if (!$this->images) {
+            return;
+        }
+
+        $imageManager = new ImageManager(new Driver());
+
+        foreach ($this->images as $imagePath) {
+            try {
+                $image = $imageManager->read(Storage::disk('public')->path($imagePath));
+                
+                // Optimizar calidad
+                $image->toJpeg(85);
+                
+                Storage::disk('public')->put($imagePath, $image->encode());
+            } catch (\Exception $e) {
+                // Log error pero no fallar
+                \Log::error("Error optimizing image: " . $e->getMessage());
+            }
+        }
     }
 
     public function getDiscountPercentageAttribute()

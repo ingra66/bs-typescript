@@ -41,13 +41,29 @@ export const Home: React.FC = () => {
       <BrandSection />
       <CategoryGrid categories={categories as any} onCategoryClick={handleCategoryClick as any} loading={loading} />
       <ProductCarousel
-        products={products.map(p => ({
+        products={products.map(p => {
+          // Función para obtener la URL de la imagen
+          const getImageUrl = (imagePath: string | undefined) => {
+            if (!imagePath) return '/placeholder.svg';
+            
+            // Si ya es una URL completa, devolverla tal como está
+            if (imagePath.startsWith('http')) {
+              return imagePath;
+            }
+            
+            // Construir URL completa
+            const baseUrl = import.meta.env.DEV ? 'http://localhost:8000' : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
+            return `${baseUrl}/storage/${imagePath}`;
+          };
+
+          return {
           ...p,
           brand: (p as any).brand || '',
           name: p.name,
           price: p.price,
-          image: (p as any).image || '/placeholder.svg',
-        }))}
+            image: getImageUrl((p as any).main_image || (p as any).images?.[0]),
+          };
+        })}
         title="Productos Destacados"
       />
       {/* Nuevo componente con filtros por categorías */}

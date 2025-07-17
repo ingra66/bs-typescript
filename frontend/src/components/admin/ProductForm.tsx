@@ -9,21 +9,16 @@ import {
   FormControlLabel,
   Switch,
   Button,
-  Grid,
   Typography,
   Alert,
   CircularProgress,
-  IconButton,
-  Card,
-  CardContent,
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Delete as DeleteIcon,
-  CloudUpload as UploadIcon,
 } from '@mui/icons-material';
 import productService from '../../services/productService';
 import type { Product, Category } from '../../services/productService';
+import ImageUploader from './ImageUploader';
 
 interface ProductFormProps {
   product?: Product | null;
@@ -45,8 +40,7 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
     is_featured: false,
   });
 
-  const [images, setImages] = useState<File[]>([]);
-  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<Array<{ file: File; preview: string; status: 'uploading' | 'success' | 'error' | 'idle'; progress?: number; error?: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -68,7 +62,13 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
       
       // Cargar imágenes existentes como preview
       if (product.images) {
-        setPreviewImages(product.images);
+        // Convertir URLs de imágenes existentes a formato de ImageFile
+        const existingImages = product.images.map((imageUrl, index) => ({
+          file: new File([], `image-${index}.jpg`), // Archivo dummy para imágenes existentes
+          preview: imageUrl,
+          status: 'success' as const,
+        }));
+        setImageFiles(existingImages);
       }
     }
   }, [product]);
@@ -143,25 +143,9 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
     return '';
   };
 
-  // Manejar subida de imágenes
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    setImages(prev => [...prev, ...files]);
-
-    // Crear previews
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreviewImages(prev => [...prev, e.target?.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  // Eliminar imagen
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-    setPreviewImages(prev => prev.filter((_, i) => i !== index));
+  // Manejar cambio de imágenes
+  const handleImagesChange = (images: Array<{ file: File; preview: string; status: 'uploading' | 'success' | 'error' | 'idle'; progress?: number; error?: string }>) => {
+    setImageFiles(images);
   };
 
   // Generar SKU automático
@@ -263,7 +247,7 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
         sku: formData.sku,
         is_active: formData.is_active,
         is_featured: formData.is_featured,
-        images: images.length > 0 ? images : undefined,
+        images: imageFiles.length > 0 ? imageFiles.map(img => img.file) : undefined,
       };
 
       if (product) {
@@ -471,60 +455,15 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
             Imágenes del producto
           </Typography>
           
-          <Box sx={{ mb: 2 }}>
-            <Button
-              variant="outlined"
-              component="label"
-              startIcon={<UploadIcon />}
-            >
-              Subir imágenes
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                style={{ display: 'none' }}
-              />
-            </Button>
-          </Box>
-
-          {/* Preview de imágenes */}
-          {previewImages.length > 0 && (
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              {previewImages.map((image, index) => (
-                <Card key={index} sx={{ width: 120, height: 120, position: 'relative' }}>
-                  <CardContent sx={{ p: 1 }}>
-                    <img
-                      src={image}
-                      alt={`Preview ${index + 1}`}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        borderRadius: '4px',
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      color="error"
-                      sx={{
-                        position: 'absolute',
-                        top: 4,
-                        right: 4,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        '&:hover': {
-                          backgroundColor: 'rgba(0,0,0,0.7)',
-                        },
-                      }}
-                      onClick={() => removeImage(index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </CardContent>
-                </Card>
-              ))}
-            </Box>
-          )}
+          <ImageUploader
+            images={imageFiles}
+            onImagesChange={handleImagesChange}
+            maxFiles={10}
+            maxSize={5 * 1024 * 1024} // 5MB
+            acceptedFormats={['image/jpeg', 'image/png', 'image/gif', 'image/webp']}
+            showPreview={true}
+            multiple={true}
+          />
         </Box>
       </Box>
 

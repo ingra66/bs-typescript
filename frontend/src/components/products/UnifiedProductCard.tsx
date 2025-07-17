@@ -18,13 +18,27 @@ const UnifiedProductCard: React.FC<UnifiedProductCardProps> = ({
   const navigate = useNavigate();
   const { addItem } = useCartStore();
 
+  // Función para obtener la URL de la imagen
+  const getImageUrl = (imagePath: string | undefined) => {
+    if (!imagePath) return '/placeholder.svg';
+    
+    // Si ya es una URL completa, devolverla tal como está
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // Construir URL completa
+    const baseUrl = import.meta.env.DEV ? 'http://localhost:8000' : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
+    return `${baseUrl}/storage/${imagePath}`;
+  };
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     const item = {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.main_image || product.images?.[0] || '/placeholder.svg',
+      image: getImageUrl(product.main_image || product.images?.[0]),
       quantity: 1,
       stock: product.stock
     };
@@ -72,9 +86,14 @@ const UnifiedProductCard: React.FC<UnifiedProductCardProps> = ({
       {/* Imagen del producto */}
       <div className={config.image}>
         <img
-          src={product.main_image || product.images?.[0] || '/placeholder.svg'}
+          src={getImageUrl(product.main_image || product.images?.[0])}
           alt={product.name}
           className="w-full h-full object-contain"
+          onError={(e) => {
+            // Fallback a imagen placeholder si hay error
+            const target = e.target as HTMLImageElement;
+            target.src = '/placeholder.svg';
+          }}
         />
       </div>
 

@@ -28,12 +28,26 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     console.log('AddToCartButton: Botón clickeado para producto:', product.id);
     setIsAdding(true);
     
+    // Función para obtener la URL de la imagen
+    const getImageUrl = (imagePath: string | undefined) => {
+      if (!imagePath) return '/placeholder.svg';
+      
+      // Si ya es una URL completa, devolverla tal como está
+      if (imagePath.startsWith('http')) {
+        return imagePath;
+      }
+      
+      // Construir URL completa
+      const baseUrl = import.meta.env.DEV ? 'http://localhost:8000' : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
+      return `${baseUrl}/storage/${imagePath}`;
+    };
+
     // Crear el item
     const newItem = {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.main_image || product.images?.[0] || '/placeholder.svg',
+      image: getImageUrl(product.main_image || product.images?.[0]),
       quantity: 1,
       stock: product.stock
     };

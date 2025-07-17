@@ -46,6 +46,7 @@ import productService from '../../services/productService';
 import type { Product, ProductFilters, Category } from '../../services/productService';
 import categoryService from '../../services/categoryService';
 import ProductForm from '../../components/admin/ProductForm';
+import ProductImageDisplay from '../../components/admin/ProductImageDisplay';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorBoundary from '../../components/ui/ErrorBoundary';
@@ -353,12 +354,12 @@ export default function Products() {
                           <TableRow key={product.id} hover>
                             <TableCell>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Avatar
-                                  src={product.main_image}
-                                  sx={{ width: 50, height: 50 }}
-                                >
-                                  {product.name.charAt(0)}
-                                </Avatar>
+                                <ProductImageDisplay
+                                  images={product.images || []}
+                                  productName={product.name}
+                                  showThumbnails={false}
+                                  size="small"
+                                />
                                 <Box>
                                   <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
                                     {product.name}

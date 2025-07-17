@@ -187,12 +187,26 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
   );
 };
 
+// Función para obtener la URL de la imagen
+const getImageUrl = (imagePath: string | undefined) => {
+  if (!imagePath) return '/placeholder.svg';
+  
+  // Si ya es una URL completa, devolverla tal como está
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+  
+  // Construir URL completa
+  const baseUrl = import.meta.env.DEV ? 'http://localhost:8000' : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
+  return `${baseUrl}/storage/${imagePath}`;
+};
+
 // Helper functions para convertir productos y categorías a GridItem
 export const convertProductsToGridItems = (products: Product[]): GridItem[] => {
   return products.map(product => ({
     id: product.id,
     name: product.name,
-    image: product.main_image || product.images?.[0] || '/placeholder.svg',
+    image: getImageUrl(product.main_image || product.images?.[0]),
     description: product.description,
     price: Number(product.price),
     type: 'product' as const

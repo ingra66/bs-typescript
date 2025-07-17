@@ -1,4 +1,4 @@
-import React from 'react';
+
 import {
   Box,
   Drawer,
@@ -16,7 +16,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import {
-  ChevronLeft as ChevronLeftIcon,
+
   Dashboard as DashboardIcon,
   ShoppingCart as OrdersIcon,
   Inventory as ProductsIcon,

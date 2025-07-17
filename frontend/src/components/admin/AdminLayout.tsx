@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Box, Toolbar, CssBaseline, Typography } from '@mui/material';
 import Sidebar from './Sidebar';
 import Products from '../../pages/admin/Products';
