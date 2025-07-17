@@ -61,14 +61,35 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
       });
       
       // Cargar imágenes existentes como preview
-      if (product.images) {
+      if (product.images && product.images.length > 0) {
+        // Función para obtener la URL completa de la imagen
+        const getImageUrl = (imagePath: string) => {
+          if (imagePath.startsWith('http')) {
+            return imagePath;
+          }
+          const baseUrl = import.meta.env.DEV ? 'http://localhost:8000' : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
+          return `${baseUrl}/storage/${imagePath}`;
+        };
+
         // Convertir URLs de imágenes existentes a formato de ImageFile
         const existingImages = product.images.map((imageUrl, index) => ({
           file: new File([], `image-${index}.jpg`), // Archivo dummy para imágenes existentes
-          preview: imageUrl,
+          preview: getImageUrl(imageUrl),
           status: 'success' as const,
         }));
+        
+        // Si hay imagen principal, agregarla al inicio
+        if (product.main_image) {
+          const mainImage = {
+            file: new File([], 'main-image.jpg'),
+            preview: getImageUrl(product.main_image),
+            status: 'success' as const,
+          };
+          existingImages.unshift(mainImage);
+        }
+        
         setImageFiles(existingImages);
+        console.log('Imágenes cargadas:', existingImages);
       }
     }
   }, [product]);
@@ -237,6 +258,9 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
       setLoading(true);
       setError(null);
 
+      // Filtrar solo archivos reales (no dummy files)
+      const realImageFiles = imageFiles.filter(img => img.file.size > 0);
+      
       const submitData = {
         category_id: parseInt(formData.category_id),
         name: formData.name,
@@ -247,7 +271,7 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
         sku: formData.sku,
         is_active: formData.is_active,
         is_featured: formData.is_featured,
-        images: imageFiles.length > 0 ? imageFiles.map(img => img.file) : undefined,
+        images: realImageFiles.length > 0 ? realImageFiles.map(img => img.file) : undefined,
       };
 
       if (product) {

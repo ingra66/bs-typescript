@@ -32,7 +32,13 @@ export const authService = {
 
   // Obtener token del localStorage
   getToken(): string | null {
-    return localStorage.getItem('auth_token');
+    try {
+      const token = localStorage.getItem('auth_token');
+      return token || null;
+    } catch (error) {
+      console.error('Error getting token from localStorage:', error);
+      return null;
+    }
   },
 
   // Eliminar token del localStorage
@@ -42,13 +48,35 @@ export const authService = {
 
   // Guardar usuario en localStorage
   saveUser(user: User): void {
-    localStorage.setItem('user', JSON.stringify(user));
+    try {
+      if (user && typeof user === 'object') {
+        localStorage.setItem('user', JSON.stringify(user));
+      } else {
+        console.warn('Attempting to save invalid user data:', user);
+        localStorage.removeItem('user');
+      }
+    } catch (error) {
+      console.error('Error saving user to localStorage:', error);
+      localStorage.removeItem('user');
+    }
   },
 
   // Obtener usuario del localStorage
   getUser(): User | null {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    try {
+      const user = localStorage.getItem('user');
+      if (!user || user === 'undefined' || user === 'null') {
+        // Limpiar datos inválidos
+        localStorage.removeItem('user');
+        return null;
+      }
+      return JSON.parse(user);
+    } catch (error) {
+      console.error('Error parsing user from localStorage:', error);
+      // Limpiar datos corruptos
+      localStorage.removeItem('user');
+      return null;
+    }
   },
 
   // Eliminar usuario del localStorage

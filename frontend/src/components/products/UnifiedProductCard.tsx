@@ -84,11 +84,17 @@ const UnifiedProductCard: React.FC<UnifiedProductCardProps> = ({
       onClick={handleProductClick}
     >
       {/* Imagen del producto */}
-      <div className={config.image}>
+      <div className={`${config.image} h-48`}>
         <img
           src={getImageUrl(product.main_image || product.images?.[0])}
           alt={product.name}
           className="w-full h-full object-contain"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            objectPosition: 'center'
+          }}
           onError={(e) => {
             // Fallback a imagen placeholder si hay error
             const target = e.target as HTMLImageElement;

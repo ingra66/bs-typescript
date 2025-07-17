@@ -134,11 +134,17 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
                 onClick={() => onItemClick?.(item)}
               >
                 {/* Imagen */}
-                <div className="relative aspect-square">
+                <div className="relative h-48"> {/* Altura fija de 192px */}
                   <img
                     src={item.image || "/placeholder.svg"}
                     alt={item.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      objectPosition: 'center'
+                    }}
                   />
                   {item.type === 'product' && showPrice && item.price && (
                     <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
