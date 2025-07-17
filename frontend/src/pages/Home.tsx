@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Hero } from '@/components/home/Hero';
 import { BrandSection } from '@/components/home/BrandSection';
-import { BrandGrid } from '@/components/home/BrandGrid';
 import { CategoryGrid } from '@/components/categories/CategoryGrid';
 import { ProductCarousel } from '@/components/products/ProductCarousel';
 import { ProductFilterCarousel } from '@/components/products/ProductFilterCarousel';
-import { ProductGrid } from '@/components/products/ProductGrid';
 import type { Product } from '@/types/product';
 import type { Category } from '@/types/product';
 
@@ -54,13 +52,6 @@ export const Home: React.FC = () => {
       />
       {/* Nuevo componente con filtros por categorías */}
       <ProductFilterCarousel title="Explora Nuestros Productos" />
-      {/* ProductGrid debajo del carrusel */}
-      <ProductGrid
-        products={products}
-        title="Todos los productos"
-        loading={loading}
-      />
-      <BrandGrid />
     </div>
   );
 }; 

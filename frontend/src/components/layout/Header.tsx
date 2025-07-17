@@ -149,9 +149,9 @@ export const Header: React.FC = () => {
         {/* Centro: Logo */}
         <Link to="/" className="flex items-center justify-center">
           <img
-            src="/logo-beltspot.png"
+            src="/gif.gif"
             alt="BeltSpot"
-            className="h-16 w-auto object-contain animate-spin-y"
+            className="h-16 w-auto object-contain brightness-125 saturate-150"
           />
         </Link>
 

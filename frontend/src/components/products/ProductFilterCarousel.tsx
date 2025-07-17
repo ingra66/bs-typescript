@@ -30,6 +30,7 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
   const [loading, setLoading] = useState(true);
   const [filteredProducts, setFilteredProducts] = useState<ProductFilterCarouselProduct[]>([]);
   const itemsPerView = 4;
+  const maxProducts = 12;
 
   const navigate = useNavigate();
   const { addItem } = useCartStore();
@@ -49,7 +50,7 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
         }
 
         if (productsResponse.success) {
-          const formattedProducts = productsResponse.data.map((product: Product) => ({
+          const formattedProducts = productsResponse.data.slice(0, maxProducts).map((product: Product) => ({
             id: product.id,
             name: product.name,
             price: product.price,
@@ -135,6 +136,25 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
 
   return (
     <section className="bg-black py-16 px-4">
+      <style>
+        {`
+          .category-button {
+            background: transparent;
+            border: 1px solid white;
+            color: white;
+            transition: all 0.2s ease;
+          }
+          .category-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #FF0000;
+          }
+          .category-button.active {
+            background: #FF0000;
+            border-color: #FF0000;
+            color: white;
+          }
+        `}
+      </style>
       <div className="max-w-7xl mx-auto">
         {title && (
           <h2 className="text-3xl font-bold text-center mb-12 text-white">
@@ -142,52 +162,39 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
           </h2>
         )}
         
-        <div className="flex gap-8">
+        <div className="flex gap-8 items-stretch">
           {/* Sidebar con categorías */}
-          <div className="w-64 flex-shrink-0">
-            <div className="bg-gray-900 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Categorías</h3>
+          <div className="w-80 flex-shrink-0">
+            <div className="bg-black rounded-lg p-4 h-full flex flex-col justify-center">
+              <h3 className="text-lg font-bold text-white mb-3">Categorías</h3>
               
-              {/* Botón "Todos" */}
-              <button
-                onClick={() => handleCategoryClick(null)}
-                className={`w-full text-left px-4 py-3 rounded-lg mb-2 transition-all duration-200 ${
-                  selectedCategory === null
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                Todos los productos
-              </button>
-              
-              {/* Lista de categorías */}
-              <div className="space-y-2">
+              {/* Categorías dinámicas del backend */}
+              <div className="space-y-1">
+                <button
+                  onClick={() => handleCategoryClick(null)}
+                  className={`w-full text-left px-3 py-2 rounded-none text-sm category-button ${
+                    selectedCategory === null ? 'active' : ''
+                  }`}
+                >
+                  TODOS
+                </button>
                 {categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => handleCategoryClick(category.id)}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 ${
-                      selectedCategory === category.id
-                        ? 'bg-red-600 text-white'
-                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                    className={`w-full text-left px-3 py-2 rounded-none text-sm category-button ${
+                      selectedCategory === category.id ? 'active' : ''
                     }`}
                   >
-                    {category.name}
+                    {category.name.toUpperCase()}
                   </button>
                 ))}
-              </div>
-              
-              {/* Contador de productos */}
-              <div className="mt-6 pt-4 border-t border-gray-700">
-                <p className="text-sm text-gray-400">
-                  {filteredProducts.length} producto{filteredProducts.length !== 1 ? 's' : ''} encontrado{filteredProducts.length !== 1 ? 's' : ''}
-                </p>
               </div>
             </div>
           </div>
 
-          {/* Carrusel de productos */}
-          <div className="flex-1">
+          {/* Grid de productos */}
+          <div className="flex-1 bg-black p-4">
             {filteredProducts.length === 0 ? (
               <div className="text-center text-white py-16">
                 <p className="text-xl">No se encontraron productos en esta categoría</p>
@@ -199,62 +206,29 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
                 </button>
               </div>
             ) : (
-              <div className="relative overflow-hidden">
-                {/* Flecha izquierda */}
-                {filteredProducts.length > itemsPerView && (
-                  <button
-                    onClick={prevSlide}
-                    className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 text-white hover:text-gray-300 transition-all duration-200 hover:scale-110"
-                  >
-                    <ChevronLeft size={32} />
-                  </button>
-                )}
-
-                {/* Flecha derecha */}
-                {filteredProducts.length > itemsPerView && (
-                  <button
-                    onClick={nextSlide}
-                    className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 text-white hover:text-gray-300 transition-all duration-200 hover:scale-110"
-                  >
-                    <ChevronRight size={32} />
-                  </button>
-                )}
-
-                {/* Contenedor del grid con animación suave */}
-                <motion.div 
-                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-16"
-                  key={`${selectedCategory}-${currentIndex}`}
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  transition={{
-                    duration: 0.4,
-                    ease: "easeInOut"
-                  }}
-                >
-                  {visibleProducts.map((product, index) => (
-                    <UnifiedProductCard
-                      key={`${product.id}-${currentIndex}-${index}`}
-                      product={{
-                        id: product.id,
-                        name: product.name,
-                        price: Number(product.price),
-                        main_image: product.image,
-                        stock: 99,
-                        description: '',
-                        category_id: product.category_id,
-                        sku: '',
-                        slug: product.name.toLowerCase().replace(/\s+/g, '-'),
-                        is_active: true,
-                        is_featured: false,
-                        created_at: '',
-                        updated_at: '',
-                        images: []
-                      }}
-                      variant="default"
-                    />
-                  ))}
-                </motion.div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 h-full">
+                {filteredProducts.map((product, index) => (
+                  <UnifiedProductCard
+                    key={`${product.id}-${index}`}
+                    product={{
+                      id: product.id,
+                      name: product.name,
+                      price: Number(product.price),
+                      main_image: product.image,
+                      stock: 99,
+                      description: '',
+                      category_id: product.category_id,
+                      sku: '',
+                      slug: product.name.toLowerCase().replace(/\s+/g, '-'),
+                      is_active: true,
+                      is_featured: false,
+                      created_at: '',
+                      updated_at: '',
+                      images: []
+                    }}
+                    variant="default"
+                  />
+                ))}
               </div>
             )}
           </div>

@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\FooterController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,6 +58,12 @@ Route::prefix('v1')->group(function () {
     
     // MercadoPago
     Route::get('/mercadopago/payment-methods', [MercadoPagoController::class, 'getPaymentMethods']);
+    
+    // Footer
+    Route::get('/footer', [FooterController::class, 'index']);
+    Route::get('/contact-info', [FooterController::class, 'contactInfo']);
+    Route::get('/legal-pages', [FooterController::class, 'legalPages']);
+    Route::post('/newsletter/subscribe', [FooterController::class, 'subscribeNewsletter']);
     
     // Debug endpoint temporal (sin autenticación)
     Route::get('/debug/cart-public', function () {
