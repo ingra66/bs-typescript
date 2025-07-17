@@ -52,6 +52,11 @@ const formatDate = (dateString: string) => {
   });
 };
 
+const formatCurrency = (value: any): string => {
+  const numValue = Number(value);
+  return isNaN(numValue) ? '0.00' : numValue.toFixed(2);
+};
+
 export default function AdminCustomers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,6 +90,14 @@ export default function AdminCustomers() {
   const [editForm, setEditForm] = useState({ name: '', email: '', password: '', password_confirmation: '', is_admin: false });
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', password_confirmation: '', is_admin: false });
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedUserForView, setSelectedUserForView] = useState<User | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -148,8 +161,8 @@ export default function AdminCustomers() {
   });
 
   const handleViewUser = (user: User) => {
-    console.log('Ver usuario:', user);
-    // TODO: Implementar vista detallada
+    setSelectedUserForView(user);
+    setViewDialogOpen(true);
   };
 
   const handleEditUser = (user: User) => {
@@ -173,31 +186,137 @@ export default function AdminCustomers() {
     }));
   };
 
+  const handleCreateFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setCreateForm((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const handleCreateUser = () => {
+    setCreateForm({ name: '', email: '', password: '', password_confirmation: '', is_admin: false });
+    setCreateError(null);
+    setCreateDialogOpen(true);
+  };
+
+  const handleCreateSave = async () => {
+    // Validación básica
+    if (!createForm.name.trim()) {
+      setCreateError('El nombre es requerido');
+      return;
+    }
+    
+    if (!createForm.email.trim()) {
+      setCreateError('El email es requerido');
+      return;
+    }
+    
+    if (!createForm.password) {
+      setCreateError('La contraseña es requerida');
+      return;
+    }
+    
+    if (createForm.password.length < 8) {
+      setCreateError('La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+    
+    if (createForm.password !== createForm.password_confirmation) {
+      setCreateError('Las contraseñas no coinciden');
+      return;
+    }
+    
+    setCreateLoading(true);
+    setCreateError(null);
+    
+    try {
+      const payload = {
+        name: createForm.name.trim(),
+        email: createForm.email.trim(),
+        password: createForm.password,
+        password_confirmation: createForm.password_confirmation,
+        is_admin: createForm.is_admin,
+      };
+      
+      const response = await userService.createUser(payload);
+      
+      if (response.success) {
+        setSnackbar({ 
+          open: true, 
+          message: 'Usuario creado correctamente', 
+          severity: 'success' 
+        });
+        setUsers((prev) => [...prev, response.data]);
+        setCreateDialogOpen(false);
+        setCreateForm({ name: '', email: '', password: '', password_confirmation: '', is_admin: false });
+        fetchStatistics(); // Actualizar estadísticas
+      } else {
+        setCreateError(response.message || 'Error al crear usuario');
+      }
+    } catch (err: any) {
+      setCreateError(err.message || 'Error al crear usuario');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
   const handleEditSave = async () => {
     if (!userToEdit) return;
+    
+    // Validación básica
+    if (!editForm.name.trim()) {
+      setEditError('El nombre es requerido');
+      return;
+    }
+    
+    if (!editForm.email.trim()) {
+      setEditError('El email es requerido');
+      return;
+    }
+    
+    if (editForm.password && editForm.password !== editForm.password_confirmation) {
+      setEditError('Las contraseñas no coinciden');
+      return;
+    }
+    
+    if (editForm.password && editForm.password.length < 8) {
+      setEditError('La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+    
     setEditLoading(true);
     setEditError(null);
+    
     try {
       const payload: any = {
-        name: editForm.name,
-        email: editForm.email,
+        name: editForm.name.trim(),
+        email: editForm.email.trim(),
         is_admin: editForm.is_admin,
       };
+      
       if (editForm.password) {
         payload.password = editForm.password;
         payload.password_confirmation = editForm.password_confirmation;
       }
+      
       const response = await userService.updateUser(userToEdit.id, payload);
+      
       if (response.success) {
-        setSnackbar({ open: true, message: 'Usuario actualizado correctamente', severity: 'success' });
+        setSnackbar({ 
+          open: true, 
+          message: 'Usuario actualizado correctamente', 
+          severity: 'success' 
+        });
         setUsers((prev) => prev.map((u) => (u.id === userToEdit.id ? response.data : u)));
         setEditDialogOpen(false);
         setUserToEdit(null);
+        setEditForm({ name: '', email: '', password: '', password_confirmation: '', is_admin: false });
       } else {
         setEditError(response.message || 'Error al actualizar usuario');
       }
     } catch (err: any) {
-      setEditError('Error al actualizar usuario: ' + err.message);
+      setEditError(err.message || 'Error al actualizar usuario');
     } finally {
       setEditLoading(false);
     }
@@ -216,11 +335,12 @@ export default function AdminCustomers() {
       if (response.success) {
         setSnackbar({ open: true, message: 'Usuario eliminado correctamente', severity: 'success' });
         setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+        fetchStatistics(); // Actualizar estadísticas
       } else {
         setSnackbar({ open: true, message: response.message || 'Error al eliminar usuario', severity: 'error' });
       }
     } catch (err: any) {
-      setSnackbar({ open: true, message: 'Error al eliminar usuario: ' + err.message, severity: 'error' });
+      setSnackbar({ open: true, message: err.message || 'Error al eliminar usuario', severity: 'error' });
     } finally {
       setDeleteLoading(false);
       setDeleteDialogOpen(false);
@@ -229,22 +349,33 @@ export default function AdminCustomers() {
   };
 
   const handleMonitorUser = async (user: User) => {
+    console.log('🔍 Iniciando monitoreo de usuario:', user);
     setSelectedUser(user);
     setStatsModalOpen(true);
     setStatsLoading(true);
     setUserStats(null);
     setUserStatsError(null);
+    
     try {
+      console.log('📊 Obteniendo estadísticas para usuario ID:', user.id);
       const response = await userService.getUserStatistics(user.id);
+      console.log('✅ Respuesta de estadísticas:', response);
+      console.log('📊 Datos de estadísticas:', response.data);
+      console.log('💰 Total gastado (tipo):', typeof response.data?.total_spent, 'valor:', response.data?.total_spent);
+      
       if (response.success) {
         setUserStats(response.data);
+        console.log('📈 Estadísticas cargadas:', response.data);
       } else {
         setUserStatsError('No se pudieron obtener las estadísticas');
+        console.error('❌ Error en respuesta:', response);
       }
     } catch (err: any) {
+      console.error('❌ Error al obtener estadísticas:', err);
       setUserStatsError('Error al obtener estadísticas: ' + err.message);
     } finally {
       setStatsLoading(false);
+      console.log('🏁 Finalizado monitoreo de usuario');
     }
   };
 
@@ -400,6 +531,15 @@ export default function AdminCustomers() {
             <Typography variant="body2" color="text.secondary">
               {filteredUsers.length} de {users.length} usuarios
             </Typography>
+            
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleCreateUser}
+              sx={{ ml: 'auto' }}
+            >
+              Crear Usuario
+            </Button>
           </Box>
         </CardContent>
       </Card>
@@ -524,19 +664,19 @@ export default function AdminCustomers() {
           ) : userStats ? (
             <Box>
               <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                <b>Total de órdenes:</b> {userStats.total_orders}
+                <b>Total de órdenes:</b> {userStats?.total_orders || 0}
               </Typography>
               <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                <b>Monto gastado:</b> ${userStats.total_spent.toFixed(2)}
+                <b>Monto gastado:</b> ${formatCurrency(userStats?.total_spent)}
               </Typography>
               <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                <b>Promedio por orden:</b> ${userStats.average_order_value.toFixed(2)}
+                <b>Promedio por orden:</b> ${formatCurrency(userStats?.average_order_value)}
               </Typography>
               <Divider sx={{ my: 2 }} />
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 <b>Última orden:</b>
               </Typography>
-              {userStats.last_order_date ? (
+              {userStats?.last_order_date ? (
                 <Typography variant="body2" sx={{ mb: 1 }}>
                   Fecha: {new Date(userStats.last_order_date).toLocaleString('es-AR')}
                 </Typography>
@@ -545,7 +685,7 @@ export default function AdminCustomers() {
                   No hay órdenes
                 </Typography>
               )}
-              {userStats.last_order && (
+              {userStats?.last_order && (
                 <Box sx={{ mb: 1 }}>
                   <Typography variant="body2">
                     Número: <b>{userStats.last_order.order_number}</b>
@@ -559,7 +699,7 @@ export default function AdminCustomers() {
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
                 <b>Órdenes por estado:</b>
               </Typography>
-              {userStats.orders_by_status && Object.keys(userStats.orders_by_status).length > 0 ? (
+              {userStats?.orders_by_status && Object.keys(userStats.orders_by_status).length > 0 ? (
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   {Object.entries(userStats.orders_by_status).map(([status, count]) => (
                     <Chip key={status} label={`${status}: ${count}`} color="primary" variant="outlined" />
@@ -575,6 +715,162 @@ export default function AdminCustomers() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseStatsModal} color="primary">
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de detalles del usuario */}
+      <Dialog open={viewDialogOpen} onClose={() => setViewDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Detalles del Usuario: {selectedUserForView?.name}
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedUserForView && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Typography variant="h6" color="primary">
+                  Información Personal
+                </Typography>
+              </Box>
+              
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    ID del Usuario
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                    #{selectedUserForView.id}
+                  </Typography>
+                </Box>
+                
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Nombre Completo
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                    {selectedUserForView.name}
+                  </Typography>
+                </Box>
+                
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Email
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                    {selectedUserForView.email}
+                  </Typography>
+                </Box>
+                
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Tipo de Usuario
+                  </Typography>
+                  <Chip
+                    label={selectedUserForView.is_admin ? 'Administrador' : 'Cliente'}
+                    color={selectedUserForView.is_admin ? 'warning' : 'default'}
+                    size="small"
+                  />
+                </Box>
+                
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Estado del Email
+                  </Typography>
+                  <Chip
+                    label={selectedUserForView.email_verified_at ? 'Verificado' : 'No verificado'}
+                    color={selectedUserForView.email_verified_at ? 'success' : 'error'}
+                    size="small"
+                  />
+                </Box>
+                
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Fecha de Registro
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                    {formatDate(selectedUserForView.created_at)}
+                  </Typography>
+                </Box>
+              </Box>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <Box>
+                <Typography variant="h6" color="primary" sx={{ mb: 2 }}>
+                  Información de la Cuenta
+                </Typography>
+                
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Última Actualización
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                      {formatDate(selectedUserForView.updated_at)}
+                    </Typography>
+                  </Box>
+                  
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Tiempo en el Sistema
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                      {Math.floor((new Date().getTime() - new Date(selectedUserForView.created_at).getTime()) / (1000 * 60 * 60 * 24))} días
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <Box>
+                <Typography variant="h6" color="primary" sx={{ mb: 2 }}>
+                  Acciones Rápidas
+                </Typography>
+                
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => {
+                      setViewDialogOpen(false);
+                      handleEditUser(selectedUserForView);
+                    }}
+                  >
+                    Editar Usuario
+                  </Button>
+                  
+                  <Button
+                    variant="outlined"
+                    color="info"
+                    onClick={() => {
+                      setViewDialogOpen(false);
+                      handleMonitorUser(selectedUserForView);
+                    }}
+                  >
+                    Ver Estadísticas
+                  </Button>
+                  
+                  {selectedUserForView.id !== 1 && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => {
+                        setViewDialogOpen(false);
+                        handleDeleteUser(selectedUserForView);
+                      }}
+                    >
+                      Eliminar Usuario
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setViewDialogOpen(false)} color="primary">
             Cerrar
           </Button>
         </DialogActions>
@@ -633,6 +929,61 @@ export default function AdminCustomers() {
         </DialogActions>
       </Dialog>
 
+      {/* Modal de creación de usuario */}
+      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Crear nuevo usuario</DialogTitle>
+        <DialogContent dividers>
+          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              label="Nombre"
+              name="name"
+              value={createForm.name}
+              onChange={handleCreateFormChange}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Email"
+              name="email"
+              value={createForm.email}
+              onChange={handleCreateFormChange}
+              fullWidth
+              required
+              type="email"
+            />
+            <TextField
+              label="Contraseña"
+              name="password"
+              value={createForm.password}
+              onChange={handleCreateFormChange}
+              fullWidth
+              required
+              type="password"
+            />
+            <TextField
+              label="Confirmar contraseña"
+              name="password_confirmation"
+              value={createForm.password_confirmation}
+              onChange={handleCreateFormChange}
+              fullWidth
+              required
+              type="password"
+            />
+            <FormControlLabel
+              control={<Checkbox checked={createForm.is_admin} onChange={handleCreateFormChange} name="is_admin" />}
+              label="Administrador"
+            />
+            {createError && <MuiAlert severity="error">{createError}</MuiAlert>}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCreateDialogOpen(false)} disabled={createLoading}>Cancelar</Button>
+          <Button onClick={handleCreateSave} color="primary" disabled={createLoading}>
+            {createLoading ? 'Creando...' : 'Crear'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Dialogo de confirmación de borrado */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
         <DialogTitle>Eliminar usuario</DialogTitle>
@@ -655,4 +1006,4 @@ export default function AdminCustomers() {
       </Snackbar>
     </Box>
   );
-} 
+}

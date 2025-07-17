@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\FooterController;
+use App\Http\Controllers\Api\AdminUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -822,13 +823,13 @@ Route::prefix('v1')->group(function () {
             
             // Usuarios (admin)
             Route::prefix('admin/users')->group(function () {
-                Route::get('/', [UserController::class, 'adminIndex']);
-                Route::get('/statistics', [UserController::class, 'getUsersStatistics']);
-                Route::post('/', [UserController::class, 'store']);
-                Route::get('/{user}', [UserController::class, 'adminShow']);
-                Route::put('/{user}', [UserController::class, 'update']);
-                Route::delete('/{user}', [UserController::class, 'destroy']);
-                Route::get('/{user}/statistics', [UserController::class, 'getUserStatistics']);
+                Route::get('/', [AdminUserController::class, 'index']);
+                Route::get('/statistics', [AdminUserController::class, 'getUsersStatistics']);
+                Route::post('/', [AdminUserController::class, 'store']);
+                Route::get('/{user}', [AdminUserController::class, 'show']);
+                Route::put('/{user}', [AdminUserController::class, 'update']);
+                Route::delete('/{user}', [AdminUserController::class, 'destroy']);
+                Route::get('/{user}/statistics', [AdminUserController::class, 'getUserStatistics']);
             });
         });
     });
