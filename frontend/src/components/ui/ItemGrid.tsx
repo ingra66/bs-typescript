@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import type { Product, Category } from '../../services/productService';
 import LoadingSpinner from './LoadingSpinner';
+import categoryService from '@/services/categoryService';
 
 export interface GridItem {
   id: number;
@@ -223,7 +224,7 @@ export const convertCategoriesToGridItems = (categories: Category[]): GridItem[]
   return categories.map(category => ({
     id: category.id,
     name: category.name,
-    image: category.image || '/placeholder.svg',
+    image: categoryService.getImageUrl(category.image),
     slug: category.slug,
     type: 'category' as const
   }));

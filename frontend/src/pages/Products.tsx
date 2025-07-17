@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Grid, List } from 'lucide-react';
 import { motion } from "framer-motion";
 import { useCartStore } from '../stores/cartStore';
@@ -14,6 +14,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 export const Products: React.FC = () => {
   const { categorySlug } = useParams<{ categorySlug?: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addItem } = useCartStore();
   
   const [products, setProducts] = useState<Product[]>([]);
@@ -37,7 +38,7 @@ export const Products: React.FC = () => {
 
         // Si hay categorySlug, cargar productos de esa categoría
         if (categorySlug) {
-          const category = categoriesResponse.data.find(cat => cat.slug === categorySlug);
+          const category = categoriesResponse.data.find((cat: Category) => cat.slug === categorySlug);
           if (category) {
             setSelectedCategory(category);
             
@@ -61,6 +62,25 @@ export const Products: React.FC = () => {
 
     loadData();
   }, [categorySlug]);
+
+  // Scroll hacia arriba cuando cambie la categoría
+  useEffect(() => {
+    if (categorySlug) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [categorySlug]);
+
+  // Scroll hacia arriba cuando termine de cargar y haya una categoría seleccionada
+  useEffect(() => {
+    if (!loading && selectedCategory && categorySlug) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [loading, selectedCategory, categorySlug]);
+
+  // Scroll hacia arriba cuando cambie la ubicación
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [location.pathname]);
 
   // Filtrar y ordenar productos
   const filteredAndSortedProducts = products
@@ -135,12 +155,12 @@ export const Products: React.FC = () => {
     return (
       <div className="bg-black min-h-screen">
         {/* Header */}
-        <div className="bg-black border-b border-gray-700 py-8 px-4 mt-16">
+        <div className="bg-black border-b border-gray-700 py-4 px-4 mt-16">
           <div className="max-w-7xl mx-auto">
-            <h1 className="text-3xl font-bold text-white text-center">
+            <h1 className="text-2xl font-bold text-white text-center">
               NUESTRAS CATEGORÍAS
             </h1>
-            <p className="text-gray-300 mt-2 text-center">
+            <p className="text-gray-300 mt-1 text-center text-sm">
               Explora nuestra colección por categorías
             </p>
           </div>
@@ -148,7 +168,10 @@ export const Products: React.FC = () => {
 
         {/* Grid de categorías usando CategoryGrid */}
         <CategoryGrid
-          categories={categories}
+          categories={categories.map((cat: Category) => ({
+            ...cat,
+            image: categoryService.getImageUrl(cat.image)
+          }))}
           loading={loading}
           onCategoryClick={handleCategoryClick}
         />

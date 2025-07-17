@@ -136,7 +136,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <div className="bg-black shadow-sm w-full fixed top-0 left-0 right-0 z-50">
+    <div className="bg-black shadow-sm w-full fixed top-0 left-0 right-0 z-50 overflow-hidden">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-2 py-px h-[54px] w-full">
         {/* Izquierda: Social */}
         <div className="flex items-center gap-2">
@@ -147,11 +147,18 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Centro: Logo */}
-        <Link to="/" className="flex items-center justify-center">
+        <Link 
+          to="/" 
+          className="flex items-center justify-center"
+          onClick={() => {
+            // Scroll hacia arriba del todo
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
           <img
             src="/gif.gif"
             alt="BeltSpot"
-            className="h-16 w-auto object-contain brightness-125 saturate-150"
+            className="h-12 w-auto object-contain brightness-125 saturate-150"
           />
         </Link>
 

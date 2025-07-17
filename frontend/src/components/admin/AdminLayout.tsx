@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import Products from '../../pages/admin/Products';
 import Orders from '../../pages/admin/Orders';
 import Customers from '../../pages/admin/Customers';
+import Categories from '../../pages/admin/Categories';
 
 const drawerWidth = 240;
 const miniDrawerWidth = 64;
@@ -35,6 +36,7 @@ export default function AdminLayout() {
       products: <Products />,
       orders: <Orders />,
       customers: <Customers />,
+      categories: <Categories />,
       analytics: (
         <Box sx={{ p: 3 }}>
           <Typography variant="h4" sx={{ color: 'primary.main', mb: 2 }}>

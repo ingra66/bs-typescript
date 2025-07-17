@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\AdminCategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
@@ -778,9 +779,15 @@ Route::prefix('v1')->group(function () {
             
             // Categorías (admin)
             Route::prefix('admin/categories')->group(function () {
-                Route::post('/', [CategoryController::class, 'store']);
-                Route::put('/{category}', [CategoryController::class, 'update']);
-                Route::delete('/{category}', [CategoryController::class, 'destroy']);
+                Route::get('/', [AdminCategoryController::class, 'index']);
+                Route::post('/', [AdminCategoryController::class, 'store']);
+                Route::get('/for-select', [AdminCategoryController::class, 'forSelect']);
+                Route::get('/statistics', [AdminCategoryController::class, 'statistics']);
+                Route::get('/{category}', [AdminCategoryController::class, 'show']);
+                Route::put('/{category}', [AdminCategoryController::class, 'update']);
+                Route::delete('/{category}', [AdminCategoryController::class, 'destroy']);
+                Route::post('/{category}/toggle-status', [AdminCategoryController::class, 'toggleStatus']);
+                Route::post('/{category}/upload-image', [AdminCategoryController::class, 'uploadImage']);
             });
             
             // Productos (admin)

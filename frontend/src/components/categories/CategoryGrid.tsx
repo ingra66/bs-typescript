@@ -40,7 +40,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
 
   if (loading) {
     return (
-      <section className="bg-black py-16 px-4 mt-16">
+      <section className="bg-black py-8 px-4 mt-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center text-gray-300">Cargando categorías...</div>
         </div>
@@ -50,7 +50,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   
   if (!categories || categories.length === 0) {
     return (
-      <section className="bg-black py-16 px-4 mt-16">
+      <section className="bg-black py-8 px-4 mt-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center text-gray-300">No hay categorías para mostrar</div>
         </div>
@@ -59,7 +59,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   }
 
   return (
-    <section className="bg-black py-16 px-4 mt-16">
+    <section className="bg-black py-8 px-4 mt-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.slice(0, 6).map((category, index) => {
@@ -70,13 +70,14 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
                 key={category.id}
                 initial={{ scale: 0.7, opacity: 0 }}
                 whileInView={{ scale: 1, opacity: 1 }}
-                viewport={{ once: true, margin: "-100px" }}
+                whileHover={{ scale: 1.05 }}
+                viewport={{ once: true, margin: "-50px" }}
                 transition={{ 
-                  duration: 0.6, 
-                  delay: index * 0.1,
+                  duration: 0.4,
+                  delay: index * 0.05,
                   ease: "easeOut"
                 }}
-                className={`relative cursor-pointer group transition-all duration-300 hover:scale-105 rounded-2xl overflow-hidden ${
+                className={`relative cursor-pointer group rounded-2xl overflow-hidden ${
                   isBlackBackground ? 'bg-black' : 'bg-white'
                 }`}
                 onClick={() => handleCategoryClick(category)}

@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Hero } from '@/components/home/Hero';
 import { BrandSection } from '@/components/home/BrandSection';
-import { CategoryGrid } from '@/components/categories/CategoryGrid';
+import { CategoryGrid, type CategoryGridCategory } from '@/components/categories/CategoryGrid';
 import { ProductCarousel } from '@/components/products/ProductCarousel';
 import { ProductFilterCarousel } from '@/components/products/ProductFilterCarousel';
 import type { Product } from '@/types/product';
 import type { Category } from '@/types/product';
+import categoryService from '@/services/categoryService';
 
 export const Home: React.FC = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,15 +34,31 @@ export const Home: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleCategoryClick = (category: Category) => {
-    console.log('Categoría clickeada:', category.name);
+  const handleCategoryClick = (category: CategoryGridCategory) => {
+    if (category.slug) {
+      navigate(`/category/${category.slug}`);
+    }
   };
 
   return (
     <div className="home-content">
       <Hero />
       <BrandSection />
-      <CategoryGrid categories={categories as any} onCategoryClick={handleCategoryClick as any} loading={loading} />
+      
+      {/* Sección de Categorías */}
+      <section className="bg-black py-12 px-4 mb-8">
+        <div className="max-w-7xl mx-auto">
+          <CategoryGrid 
+            categories={categories.map(cat => ({
+              ...cat,
+              image: categoryService.getImageUrl(cat.image)
+            }))} 
+            onCategoryClick={handleCategoryClick} 
+            loading={loading} 
+          />
+        </div>
+      </section>
+
       <ProductCarousel
         products={products.map(p => {
           // Función para obtener la URL de la imagen

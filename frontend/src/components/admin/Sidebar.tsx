@@ -24,6 +24,7 @@ import {
   Assessment as AnalyticsIcon,
   Settings as SettingsIcon,
   Menu as MenuIcon,
+  Category as CategoryIcon,
 } from '@mui/icons-material';
 import HomeIcon from '@mui/icons-material/Home';
 import { useNavigate } from 'react-router-dom';
@@ -41,6 +42,7 @@ interface SidebarProps {
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, page: 'dashboard' },
   { text: 'Productos', icon: <ProductsIcon />, page: 'products' },
+  { text: 'Categorías', icon: <CategoryIcon />, page: 'categories' },
   { text: 'Pedidos', icon: <OrdersIcon />, page: 'orders' },
   { text: 'Clientes', icon: <CustomersIcon />, page: 'customers' },
   { text: 'Analytics', icon: <AnalyticsIcon />, page: 'analytics' },
