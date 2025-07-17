@@ -42,7 +42,7 @@ export const UserProfile: React.FC = () => {
             {/* Información del usuario */}
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
-                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
                   <User className="h-8 w-8 text-white" />
                 </div>
               </div>
@@ -129,7 +129,7 @@ export const UserProfile: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
                   onClick={() => navigate('/orders')}
-                  className="flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 >
                   <Package className="h-4 w-4 mr-2" />
                   Mis Órdenes

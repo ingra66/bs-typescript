@@ -349,7 +349,7 @@ const Checkout: React.FC = () => {
                       console.error('Error debug:', error);
                     }
                   }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg"
                 >
                   Debug Carrito Backend
                 </button>

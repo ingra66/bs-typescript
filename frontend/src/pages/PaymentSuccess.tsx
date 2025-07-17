@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Home, Package, CreditCard } from 'lucide-react';
 import paymentService from '../services/paymentService';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const PaymentSuccess: React.FC = () => {
   const navigate = useNavigate();
@@ -25,8 +26,8 @@ const PaymentSuccess: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <LoadingSpinner message="Confirmando pago..." size="lg" />
       </div>
     );
   }
@@ -84,7 +85,7 @@ const PaymentSuccess: React.FC = () => {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-full mb-3">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-red-600 rounded-full mb-3">
                   <Package size={24} className="text-white" />
                 </div>
                 <h4 className="text-white font-medium mb-2">Procesamiento</h4>

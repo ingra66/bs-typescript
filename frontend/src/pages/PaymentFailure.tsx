@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { XCircle, RefreshCw, Home, CreditCard } from 'lucide-react';
 import paymentService from '../services/paymentService';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const PaymentFailure: React.FC = () => {
   const navigate = useNavigate();
@@ -30,8 +31,8 @@ const PaymentFailure: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-400"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <LoadingSpinner message="Verificando pago..." size="lg" />
       </div>
     );
   }

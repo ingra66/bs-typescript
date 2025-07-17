@@ -1,102 +1,75 @@
 import React from 'react';
-import ProductCard from './ProductCard';
-import type { Product } from '../../types/product';
-import { Card, CardContent } from "../ui/Card";
-import { Loader2 } from "lucide-react";
+import UnifiedProductCard from './UnifiedProductCard';
+import type { Product } from '../../services/productService';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 interface ProductGridProps {
   products: Product[];
   title?: string;
   subtitle?: string;
   loading?: boolean;
+  onProductClick?: (product: Product) => void;
+  background?: 'dark' | 'light';
+  gridCols?: '1' | '2' | '3' | '4' | '5' | '6';
+  showPrice?: boolean;
+  showDescription?: boolean;
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
   products,
   title,
   subtitle,
-  loading = false
+  loading = false,
+  onProductClick,
+  background = 'dark',
+  gridCols = '4',
+  showPrice = true,
+  showDescription = true
 }) => {
+  const getGridColsClass = () => {
+    switch (gridCols) {
+      case '1': return 'grid-cols-1';
+      case '2': return 'grid-cols-1 md:grid-cols-2';
+      case '3': return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+      case '4': return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
+      case '5': return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5';
+      case '6': return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6';
+      default: return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
+    }
+  };
+
   if (loading) {
     return (
-      <section className="w-full py-16 bg-gradient-to-b from-gray-900 to-gray-800">
-        <div className="max-w-7xl mx-auto px-4">
-          {title && (
-            <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-                {title}
-              </h2>
-              {subtitle && (
-                <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                  {subtitle}
-                </p>
-              )}
-            </div>
-          )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, index) => (
-              <Card key={index} className="animate-pulse bg-gray-800/50 border-gray-700/50 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <div className="w-full h-48 bg-gray-700 rounded-lg mb-4" />
-                  <div className="space-y-3">
-                    <div className="w-3/4 h-4 bg-gray-700 rounded" />
-                    <div className="w-1/2 h-4 bg-gray-700 rounded" />
-                    <div className="w-1/3 h-6 bg-gray-700 rounded" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+      <section className="py-8 bg-black mt-16 flex items-center justify-center min-h-[40vh]">
+        <LoadingSpinner message="Cargando productos..." size="lg" />
       </section>
     );
   }
 
   return (
-    <section className="w-full py-16 bg-gradient-to-b from-gray-900 to-gray-800">
+    <section className="py-8 bg-black mt-16">
       <div className="max-w-7xl mx-auto px-4">
         {title && (
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 mb-4">
-              <div className="w-8 h-0.5 bg-gradient-to-r from-transparent to-red-500"></div>
-              <span className="text-red-500 text-sm font-medium uppercase tracking-wider">
-                Productos Destacados
-              </span>
-              <div className="w-8 h-0.5 bg-gradient-to-l from-transparent to-red-500"></div>
-            </div>
-            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-              {title}
-            </h2>
-            {subtitle && (
-              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                {subtitle}
-              </p>
-            )}
-          </div>
+          <h2 className="text-2xl font-bold mb-6 text-white">
+            {title}
+          </h2>
+        )}
+        {subtitle && (
+          <p className="text-lg mb-6 text-gray-300">
+            {subtitle}
+          </p>
         )}
         
-        {products.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gray-800 flex items-center justify-center">
-              <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-2">
-              No se encontraron productos
-            </h3>
-            <p className="text-gray-400">
-              Intenta con otros filtros o vuelve más tarde
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-              />
-            ))}
-          </div>
-        )}
+        <div className={`grid gap-6 ${getGridColsClass()}`}>
+          {products.map((product) => (
+            <UnifiedProductCard
+              key={product.id}
+              product={product}
+              variant="default"
+              className={onProductClick ? 'cursor-pointer' : ''}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

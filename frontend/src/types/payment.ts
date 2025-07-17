@@ -53,7 +53,7 @@ export const getPaymentStatusColor = (status: string): string => {
   const colors: Record<string, string> = {
     [PAYMENT_STATUS.APPROVED]: 'bg-green-500',
     [PAYMENT_STATUS.PENDING]: 'bg-yellow-500',
-    [PAYMENT_STATUS.IN_PROCESS]: 'bg-blue-500',
+    [PAYMENT_STATUS.IN_PROCESS]: 'bg-red-500',
     [PAYMENT_STATUS.REJECTED]: 'bg-red-500',
     [PAYMENT_STATUS.CANCELLED]: 'bg-gray-500',
   };

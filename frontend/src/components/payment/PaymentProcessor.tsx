@@ -90,13 +90,13 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
   const getStepIcon = () => {
     switch (step) {
       case 'creating':
-        return <Loader2 size={24} className="animate-spin text-blue-400" />;
+        return <Loader2 size={24} className="animate-spin text-red-400" />;
       case 'processing':
-        return <CreditCard size={24} className="text-green-400" />;
+        return <CreditCard size={24} className="text-red-400" />;
       case 'redirecting':
-        return <CheckCircle size={24} className="text-green-400" />;
+        return <CheckCircle size={24} className="text-red-400" />;
       default:
-        return <Loader2 size={24} className="animate-spin text-blue-400" />;
+        return <Loader2 size={24} className="animate-spin text-red-400" />;
     }
   };
 
@@ -131,7 +131,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => setError(null)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors"
               >
                 Reintentar
               </button>
@@ -177,9 +177,9 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
             </div>
 
             {/* Información de seguridad */}
-            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+            <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
               <div className="flex items-start gap-3">
-                <CheckCircle size={20} className="text-blue-400 mt-0.5" />
+                <CheckCircle size={20} className="text-red-400 mt-0.5" />
                 <div>
                   <h4 className="text-white font-medium mb-2">Pago seguro</h4>
                   <p className="text-gray-300 text-sm">
@@ -194,7 +194,7 @@ const PaymentProcessor: React.FC<PaymentProcessorProps> = ({
             <button
               onClick={processPayment}
               disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white py-3 px-6 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
             >
               <CreditCard size={20} />
               {loading ? 'Procesando...' : 'Pagar ahora'}

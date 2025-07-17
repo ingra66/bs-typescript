@@ -43,7 +43,7 @@ const CartDebug: React.FC = () => {
       <div className="mt-2 space-x-2">
         <button 
           onClick={handleForceUpdate}
-          className="bg-blue-600 px-2 py-1 rounded text-xs"
+                      className="bg-red-600 px-2 py-1 rounded text-xs"
         >
           Force Update
         </button>

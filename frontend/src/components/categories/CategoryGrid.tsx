@@ -1,4 +1,6 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, useInView } from "framer-motion";
 
 export interface CategoryGridCategory {
   id: number;
@@ -25,11 +27,22 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   loading = false,
   onCategoryClick
 }) => {
+  const navigate = useNavigate();
+
+  const handleCategoryClick = (category: CategoryGridCategory) => {
+    if (onCategoryClick) {
+      onCategoryClick(category);
+    } else {
+      // Navegar a la página de productos con filtro por categoría
+      navigate(`/category/${category.slug}`);
+    }
+  };
+
   if (loading) {
     return (
-      <section className="bg-white py-16 px-4">
+      <section className="bg-black py-16 px-4 mt-16">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center text-gray-500">Cargando categorías...</div>
+          <div className="text-center text-gray-300">Cargando categorías...</div>
         </div>
       </section>
     );
@@ -37,28 +50,36 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   
   if (!categories || categories.length === 0) {
     return (
-      <section className="bg-white py-16 px-4">
+      <section className="bg-black py-16 px-4 mt-16">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center text-gray-500">No hay categorías para mostrar</div>
+          <div className="text-center text-gray-300">No hay categorías para mostrar</div>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="bg-white py-16 px-4">
+    <section className="bg-black py-16 px-4 mt-16">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.slice(0, 6).map((category, index) => {
             const isBlackBackground = index % 2 === 0; // Alternar fondos
             
             return (
-              <div
+              <motion.div
                 key={category.id}
+                initial={{ scale: 0.7, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ 
+                  duration: 0.6, 
+                  delay: index * 0.1,
+                  ease: "easeOut"
+                }}
                 className={`relative cursor-pointer group transition-all duration-300 hover:scale-105 rounded-2xl overflow-hidden ${
-                  isBlackBackground ? 'bg-black' : 'bg-gray-200'
+                  isBlackBackground ? 'bg-black' : 'bg-white'
                 }`}
-                onClick={() => onCategoryClick?.(category)}
+                onClick={() => handleCategoryClick(category)}
               >
                 {/* Imagen de la categoría */}
                 <div className="relative h-64 flex items-center justify-center p-6">
@@ -87,7 +108,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
                 <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 ${
                   isBlackBackground ? 'bg-white' : 'bg-black'
                 }`}></div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CreditCard, Wallet, Banknote } from 'lucide-react';
 import mercadoPagoService from '../../services/mercadopagoService';
 import type { PaymentMethod } from '../../types/payment';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 interface PaymentMethodsProps {
   className?: string;
@@ -45,7 +46,7 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({
   const getPaymentIcon = (paymentTypeId: string) => {
     switch (paymentTypeId) {
       case 'credit_card':
-        return <CreditCard size={24} className="text-blue-400" />;
+        return <CreditCard size={24} className="text-red-400" />;
       case 'debit_card':
         return <CreditCard size={24} className="text-green-400" />;
       case 'digital_wallet':
@@ -74,15 +75,8 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({
 
   if (loading) {
     return (
-      <div className={`bg-gray-800 rounded-lg p-6 ${className}`}>
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-700 rounded mb-4"></div>
-          <div className="space-y-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-700 rounded"></div>
-            ))}
-          </div>
-        </div>
+      <div className={`bg-gray-800 rounded-lg p-6 ${className} flex items-center justify-center`}>
+        <LoadingSpinner message="Cargando métodos de pago..." size="md" />
       </div>
     );
   }

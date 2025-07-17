@@ -73,7 +73,7 @@ const QuickPaymentTest: React.FC = () => {
           <button
             onClick={testPayment}
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
+            className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
           >
             {loading ? 'Probando...' : 'Probar Pago Completo'}
           </button>

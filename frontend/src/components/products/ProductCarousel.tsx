@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
-import { useCartStore } from '../../stores/cartStore';
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import UnifiedProductCard from './UnifiedProductCard';
+import type { Product } from '../../services/productService';
 
 export interface ProductCarouselProduct {
   id: number;
@@ -21,28 +21,12 @@ export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, titl
   const [currentIndex, setCurrentIndex] = useState(0);
   const itemsPerView = 4;
 
-  const navigate = useNavigate();
-  const { addItem } = useCartStore();
-
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1 >= products.length ? 0 : prevIndex + 1));
   };
 
   const prevSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex === 0 ? products.length - 1 : prevIndex - 1));
-  };
-
-  const handleAddToCart = (product: ProductCarouselProduct) => {
-    const item = {
-      id: product.id,
-      name: product.name,
-      price: Number(product.price),
-      image: product.image,
-      quantity: 1,
-      stock: 99
-    };
-    addItem(item);
-    alert('Producto agregado al carrito');
   };
 
   // Crear array de productos visibles
@@ -67,7 +51,7 @@ export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, titl
       <div className="max-w-7xl mx-auto">
         {title && (
           <h2 className="text-3xl font-bold text-center mb-12 text-white">
-            {title}
+            {title.toUpperCase()}
           </h2>
         )}
         
@@ -101,54 +85,26 @@ export const ProductCarousel: React.FC<ProductCarouselProps> = ({ products, titl
             }}
           >
             {visibleProducts.map((product, index) => (
-              <motion.div
+              <UnifiedProductCard
                 key={`${product.id}-${currentIndex}-${index}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.3,
-                  ease: "easeOut",
-                  delay: index * 0.1
+                product={{
+                  id: product.id,
+                  name: product.name,
+                  price: Number(product.price),
+                  main_image: product.image,
+                  stock: 99,
+                  description: '',
+                  category_id: 0,
+                  sku: '',
+                  slug: product.name.toLowerCase().replace(/\s+/g, '-'),
+                  is_active: true,
+                  is_featured: false,
+                  created_at: '',
+                  updated_at: '',
+                  images: []
                 }}
-                className="bg-transparent transition-all duration-300 cursor-pointer group aspect-square flex flex-col"
-                onClick={() => navigate(`/producto/${product.id}`)}
-              >
-                {/* Imagen del producto */}
-                <div className="flex-1 flex items-center justify-center p-2">
-                  <img
-                    src={product.image || "/placeholder.svg"}
-                    alt={product.name}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-
-                {/* Información minimalista */}
-                <div className="p-3 text-center">
-                  {/* Nombre del producto */}
-                  <div className="text-xs text-gray-300 mb-1 line-clamp-2">
-                    {product.name}
-                  </div>
-                  {/* Precio */}
-                  <div className="text-sm font-bold text-white">
-                    ${Number(product.price).toFixed(2)}
-                  </div>
-                </div>
-
-                {/* Botón minimalista como el Hero */}
-                <div className="p-3 pt-0">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddToCart(product);
-                    }}
-                    className="w-full bg-[#FF0000] hover:bg-black text-white px-2 py-1 text-xs font-medium transition-all duration-200 border border-white"
-                  >
-                    Agregar al carrito
-                  </motion.button>
-                </div>
-              </motion.div>
+                variant="default"
+              />
             ))}
           </motion.div>
         </div>

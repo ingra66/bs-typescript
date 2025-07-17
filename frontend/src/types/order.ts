@@ -109,7 +109,7 @@ export const getPaymentStatusLabel = (status: string): string => {
 export const getOrderStatusColor = (status: string): string => {
   const colors: Record<string, string> = {
     [ORDER_STATUS.PENDING]: 'bg-yellow-500',
-    [ORDER_STATUS.PROCESSING]: 'bg-blue-500',
+    [ORDER_STATUS.PROCESSING]: 'bg-red-500',
     [ORDER_STATUS.SHIPPED]: 'bg-purple-500',
     [ORDER_STATUS.DELIVERED]: 'bg-green-500',
     [ORDER_STATUS.CANCELLED]: 'bg-red-500',

@@ -82,7 +82,7 @@ export const ApiTester: React.FC = () => {
               <Button
                 onClick={runTests}
                 disabled={isTesting}
-                className="flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:opacity-50"
+                className="flex items-center justify-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-md disabled:opacity-50"
               >
                 {isTesting ? (
                   <>
@@ -216,14 +216,14 @@ export const ApiTester: React.FC = () => {
               )}
 
               {/* Instrucciones */}
-              <div className="p-4 bg-blue-900 border border-blue-700 rounded-lg">
-                <h4 className="text-blue-200 font-medium mb-2">Instrucciones:</h4>
-                <ul className="text-blue-200 text-sm space-y-1">
+              <div className="p-4 bg-red-900 border border-red-700 rounded-lg">
+                <h4 className="text-red-200 font-medium mb-2">Instrucciones:</h4>
+                <ul className="text-red-200 text-sm space-y-1">
                   <li>• Asegúrate de que el servidor Laravel esté corriendo</li>
                   <li>• Verifica que el puerto 8000 esté disponible</li>
                   <li>• Revisa la consola del navegador para más detalles</li>
                   <li>• Si hay errores de CORS, verifica la configuración del backend</li>
-                  <li>• Ejecuta <code className="bg-blue-800 px-1 rounded">php artisan serve</code> en el backend</li>
+                  <li>• Ejecuta <code className="bg-red-800 px-1 rounded">php artisan serve</code> en el backend</li>
                 </ul>
               </div>
             </div>

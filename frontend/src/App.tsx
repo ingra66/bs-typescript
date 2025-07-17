@@ -2,13 +2,14 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { Header } from './components/layout/Header';
-import { Footer } from './components/layout/Footer';
+import Footer from './components/layout/Footer';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Profile } from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import { ProductPage } from './pages/ProductPage';
+import { Products } from './pages/Products';
 import CartPage from './pages/CartPage';
 import Checkout from './pages/Checkout';
 import PaymentSuccess from './pages/PaymentSuccess';
@@ -38,6 +39,8 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/product/:id" element={<ProductPage />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/category/:categorySlug" element={<Products />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />

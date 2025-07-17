@@ -1,6 +1,5 @@
 import React from 'react';
-import { Box, Typography, Button } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Plus } from 'lucide-react';
 
 interface EmptyStateProps {
   title: string;
@@ -8,6 +7,7 @@ interface EmptyStateProps {
   actionLabel?: string;
   onAction?: () => void;
   icon?: React.ReactNode;
+  className?: string;
 }
 
 export default function EmptyState({ 
@@ -15,42 +15,34 @@ export default function EmptyState({
   description, 
   actionLabel, 
   onAction, 
-  icon 
+  icon,
+  className = ''
 }: EmptyStateProps) {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 6,
-        textAlign: 'center',
-      }}
-    >
+    <div className={`flex flex-col items-center justify-center p-6 text-center ${className}`}>
       {icon && (
-        <Box sx={{ mb: 2, color: 'text.secondary' }}>
+        <div className="mb-2 text-gray-500">
           {icon}
-        </Box>
+        </div>
       )}
       
-      <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
+      <h3 className="text-xl font-bold text-gray-900 mb-2">
         {title}
-      </Typography>
+      </h3>
       
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 400 }}>
+      <p className="text-gray-600 mb-4 max-w-md">
         {description}
-      </Typography>
+      </p>
       
       {actionLabel && onAction && (
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
+        <button
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors duration-200"
           onClick={onAction}
         >
+          <Plus size={16} />
           {actionLabel}
-        </Button>
+        </button>
       )}
-    </Box>
+    </div>
   );
 } 

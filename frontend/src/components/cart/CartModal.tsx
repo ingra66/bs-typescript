@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/authStore';
 
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 const CartModal: React.FC = () => {
   const {
@@ -159,20 +160,8 @@ const CartModal: React.FC = () => {
               padding: '0 20px'
             }}>
               {isLoading ? (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100px'
-                }}>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    border: '2px solid #333',
-                    borderTop: '2px solid white',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite'
-                  }}></div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100px' }}>
+                  <LoadingSpinner message="Cargando carrito..." size="sm" />
                 </div>
               ) : items.length === 0 ? (
                 <div style={{

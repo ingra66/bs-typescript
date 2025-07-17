@@ -8,6 +8,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'special-elite': ['Special Elite', 'cursive'],
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },

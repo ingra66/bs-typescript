@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { authService } from '@/services/authService';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 interface AuthInitializerProps {
   children: React.ReactNode;
@@ -40,11 +41,8 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
 
   if (!isInitialized) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-400">Cargando...</p>
-        </div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <LoadingSpinner message="Cargando autenticación..." size="lg" />
       </div>
     );
   }

@@ -4,6 +4,7 @@ import { Package, Calendar, Eye } from 'lucide-react';
 import orderService from '../../services/orderService';
 import type { Order } from '../../types/order';
 import { getOrderStatusLabel, getPaymentStatusLabel, getOrderStatusColor, getPaymentStatusColor } from '../../types/order';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 interface OrderListProps {
   className?: string;
@@ -84,15 +85,8 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
 
   if (loading) {
     return (
-      <div className={`bg-gray-800 rounded-lg p-6 ${className}`}>
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-700 rounded mb-4"></div>
-          <div className="space-y-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-20 bg-gray-700 rounded"></div>
-            ))}
-          </div>
-        </div>
+      <div className={`bg-gray-800 rounded-lg p-6 ${className} flex items-center justify-center`}>
+        <LoadingSpinner message="Cargando órdenes..." size="md" />
       </div>
     );
   }

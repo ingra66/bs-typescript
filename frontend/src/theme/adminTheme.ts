@@ -37,9 +37,9 @@ export const adminTheme = createTheme({
       dark: '#d97706',
     },
     info: {
-      main: '#3b82f6', // Azul para información
-      light: '#60a5fa',
-      dark: '#2563eb',
+      main: '#dc2626', // Rojo para información
+      light: '#ef4444',
+      dark: '#b91c1c',
     },
   },
   typography: {

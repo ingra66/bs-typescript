@@ -4,6 +4,7 @@ import { useCartStore } from '../stores/cartStore';
 import { useAuthStore } from '../stores/authStore';
 import { Trash2, ArrowLeft } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 interface CartTotals {
   subtotal: number;
@@ -80,10 +81,8 @@ const CartPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ backgroundColor: "#000000" }}>
-        <div className="spinner-border text-light" role="status">
-          <span className="visually-hidden">Cargando...</span>
-        </div>
+      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-black">
+        <LoadingSpinner message="Cargando carrito..." size="lg" />
       </div>
     );
   }

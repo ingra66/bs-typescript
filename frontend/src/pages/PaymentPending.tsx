@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle, Home, RefreshCw } from 'lucide-react';
 import paymentService from '../services/paymentService';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const PaymentPending: React.FC = () => {
   const navigate = useNavigate();
@@ -47,8 +48,8 @@ const PaymentPending: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <LoadingSpinner message="Procesando pago..." size="lg" />
       </div>
     );
   }

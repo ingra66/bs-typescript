@@ -185,18 +185,19 @@ export const Header: React.FC = () => {
                 {isAuthenticated ? (
                   <span 
                     style={{
-                      width: '16px',
-                      height: '16px',
+                      width: '32px',
+                      height: '32px',
                       borderRadius: '50%',
-                      backgroundColor: '#DC2626',
+                      backgroundColor: '#000',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: 'white',
-                      fontSize: '12px',
+                      fontSize: '1.5rem',
                       fontWeight: 'bold',
-                      lineHeight: '1'
+                      lineHeight: '1',
+                      marginTop: '6px'
                     }}
+                    className="text-red-600"
                   >
                     {user?.name?.charAt(0).toUpperCase()}
                   </span>
@@ -205,7 +206,7 @@ export const Header: React.FC = () => {
                 )}
               </button>
             </DropdownMenu.Trigger>
-            <DropdownMenu.Content className="z-50 min-w-[180px] bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-2 mt-1">
+            <DropdownMenu.Content className="z-50 min-w-[180px] bg-black border border-gray-700 rounded-lg shadow-lg p-2 mt-1">
               {isAuthenticated ? (
                 <>
                   <div className="px-3 py-2 border-b border-gray-700">
@@ -230,6 +231,17 @@ export const Header: React.FC = () => {
                       Mis Pedidos
                     </Button>
                   </DropdownMenu.Item>
+                  {user?.is_admin && (
+                    <DropdownMenu.Item asChild>
+                      <Button
+                        onClick={() => navigate('/admin')}
+                        className="w-full text-left bg-transparent hover:bg-red-900 text-red-400 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
+                      >
+                        <Settings size={14} />
+                        Panel de Administración
+                      </Button>
+                    </DropdownMenu.Item>
+                  )}
                   <DropdownMenu.Item asChild>
                     <Button
                       onClick={handleLogout}
@@ -272,6 +284,14 @@ export const Header: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-1 w-full">
           <div className="flex items-center justify-between">
             <nav className="hidden lg:flex items-center justify-center flex-1 gap-4">
+              <div className="group relative">
+                <Link
+                  to="/products"
+                  className="text-xs text-red-400 hover:text-red-300 uppercase tracking-wide transition-colors duration-200 cursor-pointer no-underline font-bold"
+                >
+                  SHOP
+                </Link>
+              </div>
               {categories.slice(0, 8).map((cat) => (
                 <div key={cat.id} className="group relative">
                   <Link
@@ -322,6 +342,13 @@ export const Header: React.FC = () => {
                 <div>
                   <h3 className="text-white font-semibold mb-4 text-lg">Categorías</h3>
                   <div className="space-y-2">
+                    <Link
+                      to="/products"
+                      onClick={toggleMobileMenu}
+                      className="block text-red-400 hover:text-red-300 py-2 px-3 rounded-md transition-all duration-200 hover:bg-gray-800 font-bold"
+                    >
+                      SHOP - Todos los productos
+                    </Link>
                     {categories.map((cat) => (
                       <Link
                         key={cat.id}

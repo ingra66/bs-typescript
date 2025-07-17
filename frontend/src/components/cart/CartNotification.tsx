@@ -50,7 +50,7 @@ const CartNotification: React.FC<CartNotificationProps> = ({
       case 'error':
         return 'bg-red-900 border-red-700';
       default:
-        return 'bg-blue-900 border-blue-700';
+        return 'bg-red-900 border-red-700';
     }
   };
 
