@@ -3,8 +3,6 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Grid, List } from 'lucide-react';
 import { motion } from "framer-motion";
 import { useCartStore } from '../stores/cartStore';
-import productService from '../services/productService';
-import categoryService from '../services/categoryService';
 import type { Category, Product } from '../services/productService';
 import { ItemGrid, convertProductsToGridItems, type GridItem } from '../components/ui/ItemGrid';
 import { CategoryGrid } from '../components/categories/CategoryGrid';
@@ -29,9 +27,19 @@ export const Products: React.FC = () => {
     const loadData = async () => {
       try {
         setLoading(true);
+        console.log('Products: Cargando datos, categorySlug:', categorySlug);
         
         // Cargar categorías
-        const categoriesResponse = await categoryService.getCategories();
+        const categoriesRes = await fetch('http://localhost:8000/api/v1/categories');
+        
+        if (!categoriesRes.ok) {
+          console.error('Products: Error HTTP al cargar categorías:', categoriesRes.status, categoriesRes.statusText);
+          throw new Error(`Error ${categoriesRes.status}: ${categoriesRes.statusText}`);
+        }
+        
+        const categoriesResponse = await categoriesRes.json();
+        console.log('Products: Respuesta de categorías:', categoriesResponse);
+        
         if (categoriesResponse.success) {
           setCategories(categoriesResponse.data);
         }
@@ -39,22 +47,34 @@ export const Products: React.FC = () => {
         // Si hay categorySlug, cargar productos de esa categoría
         if (categorySlug) {
           const category = categoriesResponse.data.find((cat: Category) => cat.slug === categorySlug);
+          console.log('Products: Categoría encontrada:', category);
+          
           if (category) {
             setSelectedCategory(category);
             
             // Cargar productos de la categoría
-            const productsResponse = await productService.getProducts({ 
-              active: true, 
-              category_id: category.id 
-            });
+            const productsRes = await fetch(`http://localhost:8000/api/v1/categories/${categorySlug}/products`);
+            
+            if (!productsRes.ok) {
+              console.error('Products: Error HTTP:', productsRes.status, productsRes.statusText);
+              throw new Error(`Error ${productsRes.status}: ${productsRes.statusText}`);
+            }
+            
+            const productsResponse = await productsRes.json();
+            console.log('Products: Respuesta de productos:', productsResponse);
+            
             if (productsResponse.success) {
               setProducts(productsResponse.data);
+            } else {
+              console.error('Products: Error en respuesta de productos:', productsResponse);
             }
+          } else {
+            console.error('Products: Categoría no encontrada para slug:', categorySlug);
           }
         }
         // Si no hay categorySlug, solo cargar categorías (no productos)
       } catch (error) {
-        console.error('Error loading data:', error);
+        console.error('Products: Error loading data:', error);
       } finally {
         setLoading(false);
       }
@@ -111,7 +131,8 @@ export const Products: React.FC = () => {
 
   const handleProductClick = (item: GridItem) => {
     if (item.type === 'product') {
-      navigate(`/producto/${item.id}`);
+      console.log('Products: Navegando a producto:', item.slug || item.id);
+      navigate(`/product/${item.slug || item.id}`);
     }
   };
 
@@ -170,7 +191,7 @@ export const Products: React.FC = () => {
         <CategoryGrid
           categories={categories.map((cat: Category) => ({
             ...cat,
-            image: categoryService.getImageUrl(cat.image)
+            image: cat.image ? `http://localhost:8000/storage/${cat.image}` : '/placeholder.svg'
           }))}
           loading={loading}
           onCategoryClick={handleCategoryClick}

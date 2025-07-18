@@ -23,7 +23,8 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({ children }) =>
             const currentUser = await authService.getCurrentUser();
             setUser(currentUser);
             setToken(token);
-          } catch (error) {
+          } catch (error: any) {
+            console.log('Token inválido o error de autenticación:', error);
             // Token inválido, limpiar estado
             clearAuth();
           }

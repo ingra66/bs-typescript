@@ -33,9 +33,22 @@ api.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
+      // Solo limpiar el localStorage, no redirigir automáticamente
+      // La redirección debe ser manejada por los componentes específicos
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      
+      // Solo redirigir si no estamos ya en la página de login o register
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
+        // Verificar si el usuario está intentando acceder a una ruta protegida
+        const protectedRoutes = ['/profile', '/orders', '/admin'];
+        const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
+        
+        if (isProtectedRoute) {
+          window.location.href = '/login';
+        }
+      }
     }
     return Promise.reject(error);
   }

@@ -47,12 +47,12 @@ const UnifiedProductCard: React.FC<UnifiedProductCardProps> = ({
   };
 
   const handleProductClick = () => {
-    navigate(`/product/${product.id}`);
+    navigate(`/product/${product.slug}`);
   };
 
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/product/${product.id}`);
+    navigate(`/product/${product.slug}`);
   };
 
   // Configuración según variante

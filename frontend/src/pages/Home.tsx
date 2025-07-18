@@ -5,33 +5,53 @@ import { BrandSection } from '@/components/home/BrandSection';
 import { CategoryGrid, type CategoryGridCategory } from '@/components/categories/CategoryGrid';
 import { ProductCarousel } from '@/components/products/ProductCarousel';
 import { ProductFilterCarousel } from '@/components/products/ProductFilterCarousel';
-import type { Product } from '@/types/product';
 import type { Category } from '@/types/product';
-import categoryService from '@/services/categoryService';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
+    setError(null);
+    
     // Fetch productos destacados
-    fetch('/api/v1/products/featured')
+    fetch('http://localhost:8000/api/v1/products/featured')
       .then(res => res.json())
       .then(data => {
-        setProducts(data.data || []);
+        if (data.success && data.data) {
+          setProducts(data.data);
+        } else {
+          setProducts([]);
+        }
       })
-      .catch(() => setProducts([]));
-    // Fetch categorías de navegación
-    fetch('/api/v1/categories/navigation')
+      .catch(error => {
+        console.error('Error fetching featured products:', error);
+        setError('Error cargando productos destacados');
+        setProducts([]);
+      });
+    
+    // Fetch categorías
+    fetch('http://localhost:8000/api/v1/categories')
       .then(res => res.json())
       .then(data => {
-        setCategories(data.data || []);
+        if (data.success && data.data) {
+          setCategories(data.data);
+        } else {
+          setCategories([]);
+        }
       })
-      .catch(() => setCategories([]))
-      .finally(() => setLoading(false));
+      .catch(error => {
+        console.error('Error fetching categories:', error);
+        setError('Error cargando categorías');
+        setCategories([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   const handleCategoryClick = (category: CategoryGridCategory) => {
@@ -51,7 +71,7 @@ export const Home: React.FC = () => {
           <CategoryGrid 
             categories={categories.map(cat => ({
               ...cat,
-              image: categoryService.getImageUrl(cat.image)
+              image: cat.image ? `http://localhost:8000/storage/${cat.image}` : '/placeholder.svg'
             }))} 
             onCategoryClick={handleCategoryClick} 
             loading={loading} 

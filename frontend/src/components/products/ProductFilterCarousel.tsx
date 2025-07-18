@@ -3,8 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../stores/cartStore';
 import { motion, AnimatePresence } from "framer-motion";
-import productService, { type Product, type ProductFilters } from '../../services/productService';
-import categoryService from '../../services/categoryService';
+import type { Product, ProductFilters } from '../../services/productService';
 import type { Category } from '../../services/productService';
 import UnifiedProductCard from './UnifiedProductCard';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -41,8 +40,8 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
       try {
         setLoading(true);
         const [categoriesResponse, productsResponse] = await Promise.all([
-          categoryService.getCategories(),
-          productService.getProducts({ active: true })
+          fetch('http://localhost:8000/api/v1/categories').then(res => res.json()),
+          fetch('http://localhost:8000/api/v1/products?active=true').then(res => res.json())
         ]);
 
         if (categoriesResponse.success) {

@@ -83,7 +83,7 @@ export const Header: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('/api/v1/categories/navigation')
+            fetch('http://localhost:8000/api/v1/categories/navigation')
       .then(res => res.json())
       .then(data => {
         setCategories(data.data || []);
@@ -304,6 +304,9 @@ export const Header: React.FC = () => {
                   <Link
                     to={`/category/${cat.slug}`}
                     className="text-xs text-gray-400 hover:text-white uppercase tracking-wide transition-colors duration-200 cursor-pointer no-underline"
+                    onClick={() => {
+                      console.log('Header: Navegando a categoría:', cat.slug);
+                    }}
                   >
                     {cat.name}
                   </Link>
@@ -360,7 +363,10 @@ export const Header: React.FC = () => {
                       <Link
                         key={cat.id}
                         to={`/category/${cat.slug}`}
-                        onClick={toggleMobileMenu}
+                        onClick={() => {
+                          console.log('Header Mobile: Navegando a categoría:', cat.slug);
+                          toggleMobileMenu();
+                        }}
                         className="block text-gray-300 hover:text-white py-2 px-3 rounded-md transition-all duration-200 hover:bg-gray-800"
                       >
                         {cat.name}

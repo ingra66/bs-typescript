@@ -89,6 +89,12 @@ class Product extends Model
         return $query->where('category_id', $categoryId);
     }
 
+    // Route Model Binding - usar slug en lugar de id
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
     // Métodos para manejo de imágenes
     public function getMainImageAttribute()
     {

@@ -193,8 +193,12 @@ export const useCartStore = create<CartStore>()(
             console.log('cartStore: Items sincronizados:', mappedItems);
             set({ items: mappedItems });
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error syncing cart:', error);
+          // Si es un error 401, no hacer nada (el usuario no está autenticado)
+          if (error.response?.status === 401) {
+            console.log('cartStore: Usuario no autenticado, manteniendo carrito local');
+          }
         } finally {
           set({ isLoading: false });
         }
@@ -236,9 +240,12 @@ export const useCartStore = create<CartStore>()(
           } else {
             set({ items: [], lastSync: now });
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error loading cart from backend:', error);
-          set({ items: [] });
+          // Si es un error 401, no hacer nada (el usuario no está autenticado)
+          if (error.response?.status !== 401) {
+            set({ items: [] });
+          }
         } finally {
           set({ isLoading: false });
         }

@@ -40,6 +40,12 @@ class Category extends Model
         return $query->withCount('products');
     }
 
+    // Route Model Binding - usar slug en lugar de id
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
     // Métodos
     public function getImageUrlAttribute()
     {

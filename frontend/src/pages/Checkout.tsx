@@ -337,7 +337,7 @@ const Checkout: React.FC = () => {
                 <button
                   onClick={async () => {
                     try {
-                      const response = await fetch('/api/v1/debug/cart', {
+                      const response = await fetch('http://localhost:8000/api/v1/debug/cart', {
                         headers: {
                           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
                         },

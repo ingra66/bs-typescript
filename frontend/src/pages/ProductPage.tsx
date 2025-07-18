@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ShoppingCart, Star, ArrowLeft } from "lucide-react";
-import productService from "../services/productService";
 import type { Product, ProductVariant } from "../services/productService";
 import { useCartStore } from "../stores/cartStore";
 import { Header } from "../components/layout/Header";
 
 export const ProductPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,10 +25,19 @@ export const ProductPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!id) return;
+    if (!slug) return;
     setLoading(true);
-    productService.getProduct(parseInt(id))
+    setError(null);
+    
+    fetch(`http://localhost:8000/api/v1/products/${slug}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then(response => {
+        console.log('ProductPage: Respuesta del servidor:', response);
         if (response.success && response.data) {
           setProduct(response.data);
           if (response.data.variants && response.data.variants.length > 0) {
@@ -37,12 +45,16 @@ export const ProductPage: React.FC = () => {
             setSelectedVariant(activeVariant || response.data.variants[0]);
           }
         } else {
+          console.error('ProductPage: Producto no encontrado en la respuesta:', response);
           setError("Producto no encontrado");
         }
       })
-      .catch(() => setError("Error al cargar el producto"))
+      .catch((error) => {
+        console.error('ProductPage: Error cargando producto:', error);
+        setError("Error al cargar el producto");
+      })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [slug]);
 
   // Scroll hacia arriba cuando se carga la página
   useEffect(() => {
@@ -56,7 +68,7 @@ export const ProductPage: React.FC = () => {
       const item = {
         id: product.id,
         name: product.name,
-        price: selectedVariant ? product.price + selectedVariant.price_adjustment : product.price,
+        price: selectedVariant ? Number(product.price) + Number(selectedVariant.price_adjustment) : Number(product.price),
         image: getImageUrl(product.main_image || product.images?.[0]),
         quantity: quantity,
         stock: selectedVariant ? selectedVariant.stock : product.stock,
@@ -76,7 +88,9 @@ export const ProductPage: React.FC = () => {
     ...(product.images ? product.images.map(getImageUrl).filter(url => url !== '/placeholder.svg') : [])
   ].filter((url, index, arr) => arr.indexOf(url) === index) : [];
 
-  const finalPrice = selectedVariant && product ? product.price + selectedVariant.price_adjustment : product?.price || 0;
+  const finalPrice = selectedVariant && product ? 
+    (Number(product.price) + Number(selectedVariant.price_adjustment)) : 
+    Number(product?.price) || 0;
   const discountPercentage = product?.discount_percentage || 0;
   const hasDiscount = product?.compare_price && product.compare_price > finalPrice;
 
@@ -160,7 +174,7 @@ export const ProductPage: React.FC = () => {
                 )}
                 <div className="flex items-center space-x-3">
                   <div className="text-xl lg:text-2xl font-bold text-white">${finalPrice.toFixed(2)}</div>
-                  {hasDiscount && <div className="text-base text-gray-400 line-through">${product.compare_price?.toFixed(2)}</div>}
+                  {hasDiscount && <div className="text-base text-gray-400 line-through">${Number(product.compare_price).toFixed(2)}</div>}
                 </div>
               </div>
 
@@ -182,7 +196,7 @@ export const ProductPage: React.FC = () => {
                         className={`py-2 px-3 border-2 rounded text-sm font-medium transition-colors ${selectedVariant?.id === variant.id ? 'border-brand-red bg-brand-red text-white' : 'border-gray-600 text-white hover:border-brand-red bg-gray-800'}`}
                       >
                         {variant.name}: {variant.value}
-                        {variant.price_adjustment > 0 && <span className="block text-xs">+${variant.price_adjustment.toFixed(2)}</span>}
+                        {variant.price_adjustment > 0 && <span className="block text-xs">+${Number(variant.price_adjustment).toFixed(2)}</span>}
                       </button>
                     ))}
                   </div>
