@@ -111,6 +111,75 @@
   animation: fadeOut 0.3s ease-in forwards;
 }
 
+/* Estilos globales para fuente y colores */
+* {
+  font-family: 'Special Elite', cursive !important;
+}
+
+/* Variables CSS para colores */
+:root {
+  --color-primary: #FF0000;
+  --color-secondary: #000000;
+  --color-accent: #FF0000;
+  --color-brand-red: #FF0000;
+  --color-brand-black: #000000;
+}
+
+/* Clases utilitarias para colores */
+.text-brand-red {
+  color: #FF0000 !important;
+}
+
+.text-brand-black {
+  color: #000000 !important;
+}
+
+.bg-brand-red {
+  background-color: #FF0000 !important;
+}
+
+.bg-brand-black {
+  background-color: #000000 !important;
+}
+
+.border-brand-red {
+  border-color: #FF0000 !important;
+}
+
+.border-brand-black {
+  border-color: #000000 !important;
+}
+
+/* Estilos para elementos específicos */
+button, input, textarea, select, a {
+  font-family: 'Special Elite', cursive !important;
+}
+
+/* Hover effects con colores de marca */
+.hover\:text-brand-red:hover {
+  color: #FF0000 !important;
+}
+
+.hover\:text-brand-black:hover {
+  color: #000000 !important;
+}
+
+.hover\:bg-brand-red:hover {
+  background-color: #FF0000 !important;
+}
+
+.hover\:bg-brand-black:hover {
+  background-color: #000000 !important;
+}
+
+.hover\:border-brand-red:hover {
+  border-color: #FF0000 !important;
+}
+
+.hover\:border-brand-black:hover {
+  border-color: #000000 !important;
+}
+
 
 
  

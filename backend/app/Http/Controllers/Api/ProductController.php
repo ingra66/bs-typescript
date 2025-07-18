@@ -193,7 +193,9 @@ class ProductController extends Controller
             'stock' => 'sometimes|required|integer|min:0',
             'sku' => 'sometimes|required|string|unique:products,sku,' . $product->id,
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'remove_images' => 'nullable|array',
+            'remove_images.*' => 'string',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ]);
@@ -210,16 +212,37 @@ class ProductController extends Controller
             }
         }
 
-        // Manejar imágenes usando el servicio
-        if ($request->hasFile('images')) {
-            // Eliminar imágenes anteriores si existen
-            if ($product->images) {
-                foreach ($product->images as $image) {
-                    $this->imageService->deleteImage($image);
+        // Manejar imágenes
+        $existingImages = $product->images ?? [];
+        
+        // Eliminar imágenes específicas si se solicitan
+        if ($request->has('remove_images') && is_array($request->remove_images)) {
+            foreach ($request->remove_images as $imageToRemove) {
+                if (in_array($imageToRemove, $existingImages)) {
+                    $this->imageService->deleteImage($imageToRemove);
+                    $existingImages = array_values(array_filter($existingImages, function($img) use ($imageToRemove) {
+                        return $img !== $imageToRemove;
+                    }));
                 }
             }
+        }
+        
+        // Procesar nuevas imágenes si se proporcionan
+        if ($request->hasFile('images') && !empty($request->file('images'))) {
+            // Filtrar archivos válidos
+            $validFiles = array_filter($request->file('images'), function($file) {
+                return $file && $file->isValid() && $file->getSize() > 0;
+            });
             
-            $validated['images'] = $this->imageService->processProductImages($request->file('images'));
+            if (!empty($validFiles)) {
+                $newImages = $this->imageService->processProductImages($validFiles);
+                $validated['images'] = array_merge($existingImages, $newImages);
+            } else {
+                $validated['images'] = $existingImages;
+            }
+        } else {
+            // Si no se envían nuevas imágenes, mantener las existentes (menos las eliminadas)
+            $validated['images'] = $existingImages;
         }
 
         $product->update($validated);

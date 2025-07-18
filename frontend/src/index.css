@@ -2,11 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Importar fuente Special Elite */
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+
 /* Prevenir overflow horizontal */
 html, body {
   overflow-x: hidden;
   width: 100%;
   max-width: 100%;
+  font-family: 'Special Elite', cursive;
+  color: #000000;
 }
 
 /* Aplicar Special Elite a todos los textos */
@@ -14,10 +19,54 @@ html, body {
   font-family: 'Special Elite', cursive !important;
 }
 
+/* Variables CSS para colores */
+:root {
+  --color-primary: #FF0000;
+  --color-secondary: #000000;
+  --color-accent: #FF0000;
+  --color-brand-red: #FF0000;
+  --color-brand-black: #000000;
+}
+
 #root {
   overflow-x: hidden;
   width: 100%;
   max-width: 100%;
+}
+
+/* Estilos base para texto */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Special Elite', cursive !important;
+  color: #000000;
+}
+
+p, span, div, button, input, textarea, select {
+  font-family: 'Special Elite', cursive !important;
+}
+
+/* Clases utilitarias para colores */
+.text-brand-red {
+  color: #FF0000 !important;
+}
+
+.text-brand-black {
+  color: #000000 !important;
+}
+
+.bg-brand-red {
+  background-color: #FF0000 !important;
+}
+
+.bg-brand-black {
+  background-color: #000000 !important;
+}
+
+.border-brand-red {
+  border-color: #FF0000 !important;
+}
+
+.border-brand-black {
+  border-color: #000000 !important;
 }
 
 @keyframes spin-y {

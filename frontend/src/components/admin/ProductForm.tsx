@@ -40,7 +40,7 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
     is_featured: false,
   });
 
-  const [imageFiles, setImageFiles] = useState<Array<{ file: File; preview: string; status: 'uploading' | 'success' | 'error' | 'idle'; progress?: number; error?: string }>>([]);
+  const [imageFiles, setImageFiles] = useState<Array<{ file: File; preview: string; status: 'uploading' | 'success' | 'error' | 'idle'; progress?: number; error?: string; isExisting?: boolean; originalPath?: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -72,18 +72,28 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
         };
 
         // Convertir URLs de imágenes existentes a formato de ImageFile
-        const existingImages = product.images.map((imageUrl, index) => ({
-          file: new File([], `image-${index}.jpg`), // Archivo dummy para imágenes existentes
-          preview: getImageUrl(imageUrl),
-          status: 'success' as const,
-        }));
+        const existingImages = product.images.map((imageUrl, index) => {
+          // Crear un archivo dummy que NO se enviará al servidor
+          const fileName = imageUrl.split('/').pop() || `image-${index}.jpg`;
+          const file = new File([''], fileName, { type: 'image/jpeg' });
+          
+          return {
+            file,
+            preview: getImageUrl(imageUrl),
+            status: 'success' as const,
+            isExisting: true,
+            originalPath: imageUrl,
+          };
+        });
         
         // Si hay imagen principal, agregarla al inicio
         if (product.main_image) {
           const mainImage = {
-            file: new File([], 'main-image.jpg'),
+            file: new File([''], 'main-image.jpg', { type: 'image/jpeg' }),
             preview: getImageUrl(product.main_image),
             status: 'success' as const,
+            isExisting: true,
+            originalPath: product.main_image,
           };
           existingImages.unshift(mainImage);
         }
@@ -165,7 +175,7 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
   };
 
   // Manejar cambio de imágenes
-  const handleImagesChange = (images: Array<{ file: File; preview: string; status: 'uploading' | 'success' | 'error' | 'idle'; progress?: number; error?: string }>) => {
+  const handleImagesChange = (images: Array<{ file: File; preview: string; status: 'uploading' | 'success' | 'error' | 'idle'; progress?: number; error?: string; isExisting?: boolean; originalPath?: string }>) => {
     setImageFiles(images);
   };
 
@@ -258,8 +268,34 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
       setLoading(true);
       setError(null);
 
-      // Filtrar solo archivos reales (no dummy files)
-      const realImageFiles = imageFiles.filter(img => img.file.size > 0);
+      // Separar imágenes existentes de nuevas
+      const existingImages = imageFiles.filter(img => img.isExisting);
+      const newImages = imageFiles.filter(img => !img.isExisting && img.file.size > 0 && img.file.type.startsWith('image/'));
+      
+      // Obtener las rutas de las imágenes existentes que se mantienen
+      const keptExistingImages = existingImages.map(img => img.originalPath).filter(Boolean);
+      
+      // Obtener las rutas de las imágenes existentes que se eliminaron
+      const originalExistingPaths = product?.images || [];
+      const removedImages = originalExistingPaths.filter(path => 
+        !keptExistingImages.includes(path)
+      );
+      
+      // Debug: mostrar todos los archivos
+      console.log('Todos los imageFiles:', imageFiles.map(img => ({
+        name: img.file.name,
+        size: img.file.size,
+        type: img.file.type,
+        isExisting: img.isExisting,
+        originalPath: img.originalPath
+      })));
+      
+      console.log('Imágenes existentes:', existingImages.length);
+      console.log('Imágenes nuevas válidas:', newImages.length);
+      
+      // Verificar que no estamos enviando archivos dummy
+      const dummyFiles = imageFiles.filter(img => img.file.size === 0);
+      console.log('Archivos dummy encontrados:', dummyFiles.length);
       
       const submitData = {
         category_id: parseInt(formData.category_id),
@@ -271,8 +307,18 @@ export default function ProductForm({ product, categories, onSuccess, onCancel }
         sku: formData.sku,
         is_active: formData.is_active,
         is_featured: formData.is_featured,
-        images: realImageFiles.length > 0 ? realImageFiles.map(img => img.file) : undefined,
+        // Solo enviar imágenes reales (no dummy files)
+        images: newImages.length > 0 ? newImages.map(img => img.file) : undefined,
+        remove_images: removedImages.length > 0 ? removedImages : undefined,
       };
+
+      console.log('Datos a enviar:', submitData);
+      console.log('Imágenes nuevas:', newImages);
+      console.log('Imágenes eliminadas:', removedImages);
+      console.log('Imágenes existentes mantenidas:', keptExistingImages);
+      console.log('Archivos a enviar:', newImages.map(img => ({ name: img.file.name, size: img.file.size, type: img.file.type })));
+      console.log('¿Hay imágenes nuevas?', newImages.length > 0);
+      console.log('¿Hay imágenes a eliminar?', removedImages.length > 0);
 
       if (product) {
         // Actualizar producto existente

@@ -100,7 +100,10 @@ export default function ImageUploader({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: processFiles,
     accept: {
-      'image/*': acceptedFormats,
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/gif': ['.gif'],
+      'image/webp': ['.webp'],
     },
     maxSize,
     maxFiles: maxFiles - images.length,

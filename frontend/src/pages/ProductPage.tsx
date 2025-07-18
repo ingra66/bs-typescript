@@ -1,45 +1,41 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { ShoppingCart } from "lucide-react";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number | string;
-  image: string;
-  stock: number;
-  sku?: string;
-  categories?: string[];
-  tags?: string[];
-}
+import { useParams, useNavigate } from "react-router-dom";
+import { ShoppingCart, Star, ArrowLeft } from "lucide-react";
+import productService from "../services/productService";
+import type { Product, ProductVariant } from "../services/productService";
+import { useCartStore } from "../stores/cartStore";
+import { Header } from "../components/layout/Header";
 
 export const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [tab, setTab] = useState<'desc' | 'info'>('desc');
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const { addItem } = useCartStore();
+
+  const getImageUrl = (imagePath: string | undefined) => {
+    if (!imagePath) return '/placeholder.svg';
+    if (imagePath.startsWith('http')) return imagePath;
+    const baseUrl = import.meta.env.DEV ? 'http://localhost:8000' : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
+    return `${baseUrl}/storage/${imagePath}`;
+  };
 
   useEffect(() => {
+    if (!id) return;
     setLoading(true);
-    fetch(`/api/v1/products/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.data) {
-          setProduct({
-            id: data.data.id,
-            name: data.data.name,
-            description: data.data.description,
-            price: data.data.price,
-            image: data.data.main_image || "/placeholder.svg",
-            stock: data.data.stock,
-            sku: data.data.sku || '',
-            categories: data.data.category ? [data.data.category.name] : [],
-            tags: data.data.tags || [],
-          });
+    productService.getProduct(parseInt(id))
+      .then(response => {
+        if (response.success && response.data) {
+          setProduct(response.data);
+          if (response.data.variants && response.data.variants.length > 0) {
+            const activeVariant = response.data.variants.find((v: ProductVariant) => v.is_active);
+            setSelectedVariant(activeVariant || response.data.variants[0]);
+          }
         } else {
           setError("Producto no encontrado");
         }
@@ -48,22 +44,26 @@ export const ProductPage: React.FC = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
+  // Scroll hacia arriba cuando se carga la página
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const handleAddToCart = async () => {
     if (!product) return;
     setAdding(true);
     try {
-      const res = await fetch('/api/v1/cart/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_id: product.id, quantity }),
-        credentials: 'include',
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert('Producto agregado al carrito');
-      } else {
-        alert(data.message || 'No se pudo agregar al carrito');
-      }
+      const item = {
+        id: product.id,
+        name: product.name,
+        price: selectedVariant ? product.price + selectedVariant.price_adjustment : product.price,
+        image: getImageUrl(product.main_image || product.images?.[0]),
+        quantity: quantity,
+        stock: selectedVariant ? selectedVariant.stock : product.stock,
+        variant: selectedVariant
+      };
+      addItem(item);
+      alert('Producto agregado al carrito');
     } catch {
       alert('Error al agregar al carrito');
     } finally {
@@ -71,90 +71,149 @@ export const ProductPage: React.FC = () => {
     }
   };
 
-  if (loading) return <div style={{ color: '#fff', textAlign: 'center', marginTop: 60 }}>Cargando producto...</div>;
-  if (error) return <div style={{ color: '#dc3545', textAlign: 'center', marginTop: 60 }}>{error}</div>;
-  if (!product) return null;
+  const productImages = product ? [
+    ...(product.main_image ? [getImageUrl(product.main_image)] : []),
+    ...(product.images ? product.images.map(getImageUrl).filter(url => url !== '/placeholder.svg') : [])
+  ].filter((url, index, arr) => arr.indexOf(url) === index) : [];
 
-  return (
-    <div style={{ background: '#000', minHeight: '100vh', color: '#fff', padding: '40px 0 60px 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ display: 'flex', gap: 48, maxWidth: 1200, width: '100%', alignItems: 'flex-start', margin: '0 auto' }}>
-        {/* Imagen principal */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #fff', width: 340, height: 340, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-            <img src={product.image} alt={product.name} style={{ maxWidth: 300, maxHeight: 300, objectFit: 'contain', display: 'block' }} />
-          </div>
-          {/* Miniaturas (placeholder, solo una imagen por ahora) */}
-          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-            <div style={{ width: 60, height: 60, background: '#fff', borderRadius: 8, border: '1px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 1 }}>
-              <img src={product.image} alt={product.name} style={{ maxWidth: 48, maxHeight: 48, objectFit: 'contain' }} />
-            </div>
-          </div>
-        </div>
-        {/* Panel derecho */}
-        <div style={{ flex: 1.2, background: '#181b1e', borderRadius: 18, padding: 32, minWidth: 320, boxShadow: '0 2px 16px 0 rgba(220,53,69,0.10)' }}>
-          <h1 style={{ color: '#fff', fontSize: 28, fontWeight: 700, margin: 0, marginBottom: 10 }}>{product.name}</h1>
-          <div style={{ color: '#dc3545', fontWeight: 700, fontSize: 24, margin: '8px 0 18px 0' }}>${Number(product.price).toFixed(2)}</div>
-          <table style={{ width: '100%', color: '#fff', fontSize: 15, marginBottom: 18, borderCollapse: 'collapse' }}>
-            <tbody>
-              <tr>
-                <td style={{ color: '#bbb', fontWeight: 600, padding: '4px 8px 4px 0', width: 90 }}>SKU</td>
-                <td style={{ color: '#fff', fontWeight: 400 }}>{product.sku || '-'}</td>
-              </tr>
-              <tr>
-                <td style={{ color: '#bbb', fontWeight: 600, padding: '4px 8px 4px 0' }}>Categorías</td>
-                <td style={{ color: '#fff', fontWeight: 400 }}>{product.categories && product.categories.length > 0 ? product.categories.join(', ') : '-'}</td>
-              </tr>
-              <tr>
-                <td style={{ color: '#bbb', fontWeight: 600, padding: '4px 8px 4px 0' }}>Tags</td>
-                <td style={{ color: '#fff', fontWeight: 400 }}>{product.tags && product.tags.length > 0 ? product.tags.join(', ') : '-'}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
-            <input
-              type="number"
-              min={1}
-              max={product.stock}
-              value={quantity}
-              onChange={e => setQuantity(Math.max(1, Math.min(product.stock, Number(e.target.value))))}
-              style={{ width: 56, padding: '8px 6px', borderRadius: 8, border: '1px solid #fff', background: '#23272b', color: '#fff', fontWeight: 600, fontSize: 16, textAlign: 'center' }}
-              disabled={product.stock === 0}
-            />
-            <button
-              onClick={handleAddToCart}
-              disabled={adding || product.stock === 0}
-              style={{ background: '#dc3545', color: '#fff', border: 'none', borderRadius: 8, padding: '12px 32px', fontWeight: 600, fontSize: 16, cursor: adding || product.stock === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
-            >
-              <ShoppingCart size={20} /> Agregar al carrito
-            </button>
-          </div>
-          <div style={{ color: product.stock > 0 ? '#4caf50' : '#dc3545', fontWeight: 600, fontSize: 15, marginBottom: 10 }}>
-            {product.stock > 0 ? `En stock (${product.stock})` : 'Sin stock'}
+  const finalPrice = selectedVariant && product ? product.price + selectedVariant.price_adjustment : product?.price || 0;
+  const discountPercentage = product?.discount_percentage || 0;
+  const hasDiscount = product?.compare_price && product.compare_price > finalPrice;
+
+  const renderStars = (rating: number) => (
+    Array.from({ length: 5 }, (_, i) => (
+      <Star key={i} size={16} className={i < rating ? "text-brand-red fill-current" : "text-gray-300"} />
+    ))
+  );
+
+  if (loading || error) {
+    return (
+      <div className="min-h-screen bg-black">
+        <Header />
+        <div className="pt-[54px] min-h-screen flex items-center justify-center">
+          <div className={`text-xl ${error ? 'text-brand-red' : 'text-white'}`}>
+            {error || 'Cargando producto...'}
           </div>
         </div>
       </div>
-      {/* Tabs abajo */}
-      <div style={{ maxWidth: 900, width: '100%', margin: '40px auto 0 auto', background: '#181b1e', borderRadius: 14, padding: 24 }}>
-        <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #23272b', marginBottom: 18 }}>
-          <button
-            onClick={() => setTab('desc')}
-            style={{ background: 'none', border: 'none', color: tab === 'desc' ? '#dc3545' : '#fff', fontWeight: 700, fontSize: 17, padding: '8px 24px', borderBottom: tab === 'desc' ? '2px solid #dc3545' : '2px solid transparent', cursor: 'pointer', borderRadius: 0 }}
-          >
-            Descripción
-          </button>
-          <button
-            onClick={() => setTab('info')}
-            style={{ background: 'none', border: 'none', color: tab === 'info' ? '#dc3545' : '#fff', fontWeight: 700, fontSize: 17, padding: '8px 24px', borderBottom: tab === 'info' ? '2px solid #dc3545' : '2px solid transparent', cursor: 'pointer', borderRadius: 0 }}
-          >
-            Información adicional
-          </button>
-        </div>
-        <div style={{ color: '#fff', fontSize: 16, minHeight: 60 }}>
-          {tab === 'desc' ? (
-            <div>{product.description || 'Sin descripción.'}</div>
-          ) : (
-            <div>Próximamente información adicional del producto.</div>
-          )}
+    );
+  }
+
+  if (!product) return null;
+
+  return (
+    <div className="min-h-screen bg-black">
+      <Header />
+      <div className="pt-[54px] min-h-screen">
+        <div className="max-w-6xl mx-auto px-4 py-6 w-full">
+          {/* Botón de volver */}
+          <div className="mb-6">
+            <button
+              onClick={() => navigate('/products')}
+              className="flex items-center space-x-2 text-white hover:text-brand-red transition-colors"
+            >
+              <ArrowLeft size={20} />
+              <span>Volver a productos</span>
+            </button>
+          </div>
+
+          <div className="flex flex-col lg:flex-row items-start justify-center gap-6 lg:gap-8">
+            {/* Imagen del producto */}
+            <div className="flex flex-col items-center space-y-3 w-full lg:w-1/2">
+              <div className="relative w-full max-w-sm">
+                <div className="bg-white border-2 border-gray-200 rounded-lg p-4 flex items-center justify-center">
+                  <img src={productImages[selectedImage] || '/placeholder.svg'} alt={product.name} className="w-full max-h-[350px] object-contain" />
+                </div>
+                {hasDiscount && (
+                  <div className="absolute top-2 left-2">
+                    <div className="bg-brand-red text-white px-2 py-1 rounded font-bold text-xs rotate-12 shadow-lg">
+                      {discountPercentage}% OFF
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {productImages.length > 1 && (
+                <div className="flex space-x-2 justify-center">
+                  {productImages.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImage(index)}
+                      className={`w-12 h-12 md:w-14 md:h-14 border-2 rounded-lg overflow-hidden ${selectedImage === index ? 'border-brand-red' : 'border-gray-300'}`}
+                    >
+                      <img src={image} alt={`${product.name} vista ${index + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Información del producto */}
+            <div className="flex flex-col space-y-4 w-full lg:w-1/2 max-w-md">
+              <div>
+                <h1 className="text-xl lg:text-2xl font-bold text-white mb-2">{product.name}</h1>
+                {product.average_rating && (
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="flex items-center space-x-1">{renderStars(product.average_rating)}</div>
+                    <span className="text-sm text-gray-400">({product.reviews_count || 0} reseñas)</span>
+                  </div>
+                )}
+                <div className="flex items-center space-x-3">
+                  <div className="text-xl lg:text-2xl font-bold text-white">${finalPrice.toFixed(2)}</div>
+                  {hasDiscount && <div className="text-base text-gray-400 line-through">${product.compare_price?.toFixed(2)}</div>}
+                </div>
+              </div>
+
+              <div className="space-y-1 text-sm">
+                {product.sku && <div className="flex justify-between"><span className="text-gray-400">SKU:</span><span className="text-white font-medium">{product.sku}</span></div>}
+                {product.category?.name && <div className="flex justify-between"><span className="text-gray-400">Categoría:</span><span className="text-white font-medium">{product.category.name}</span></div>}
+                <div className="flex justify-between"><span className="text-gray-400">Stock:</span><span className="text-white font-medium">{selectedVariant ? selectedVariant.stock : product.stock} unidades</span></div>
+                {product.is_featured && <div className="flex justify-between"><span className="text-gray-400">Estado:</span><span className="text-brand-red font-medium">Destacado</span></div>}
+              </div>
+
+              {product.variants && product.variants.some(v => v.is_active) && (
+                <div>
+                  <h3 className="text-base font-semibold text-white mb-2">Variantes</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {product.variants.filter(v => v.is_active).map(variant => (
+                      <button
+                        key={variant.id}
+                        onClick={() => setSelectedVariant(variant)}
+                        className={`py-2 px-3 border-2 rounded text-sm font-medium transition-colors ${selectedVariant?.id === variant.id ? 'border-brand-red bg-brand-red text-white' : 'border-gray-600 text-white hover:border-brand-red bg-gray-800'}`}
+                      >
+                        {variant.name}: {variant.value}
+                        {variant.price_adjustment > 0 && <span className="block text-xs">+${variant.price_adjustment.toFixed(2)}</span>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col space-y-3">
+                <div className="flex items-center border-2 border-gray-600 rounded px-2 w-32 bg-gray-800">
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-2 py-1 text-gray-400 hover:text-white">-</button>
+                  <input
+                    type="number"
+                    min={1}
+                    max={selectedVariant ? selectedVariant.stock : product.stock}
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, Math.min(selectedVariant ? selectedVariant.stock : product.stock, Number(e.target.value))))}
+                    className="w-12 text-center border-none focus:outline-none bg-transparent text-white"
+                  />
+                  <button onClick={() => setQuantity(Math.min(selectedVariant ? selectedVariant.stock : product.stock, quantity + 1))} className="px-2 py-1 text-gray-400 hover:text-white">+</button>
+                </div>
+
+                <button
+                  onClick={handleAddToCart}
+                  disabled={adding || (selectedVariant ? selectedVariant.stock === 0 : product.stock === 0)}
+                  className="w-full bg-brand-red hover:bg-red-700 text-white py-2 px-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  <ShoppingCart size={18} />
+                  <span>{selectedVariant ? selectedVariant.stock === 0 : product.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

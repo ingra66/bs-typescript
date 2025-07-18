@@ -10,6 +10,15 @@ module.exports = {
     extend: {
       fontFamily: {
         'special-elite': ['Special Elite', 'cursive'],
+        'sans': ['Special Elite', 'cursive'],
+        'default': ['Special Elite', 'cursive'],
+      },
+      colors: {
+        'primary': '#FF0000',
+        'secondary': '#000000',
+        'accent': '#FF0000',
+        'brand-red': '#FF0000',
+        'brand-black': '#000000',
       },
       keyframes: {
         "accordion-down": {

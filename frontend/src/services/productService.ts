@@ -96,6 +96,7 @@ export interface ProductCreateData {
 
 export interface ProductUpdateData extends Partial<ProductCreateData> {
   id: number;
+  remove_images?: string[];
 }
 
 export interface ApiResponse<T> {
@@ -191,11 +192,28 @@ class ProductService {
         formData.append('is_featured', data.is_featured ? '1' : '0');
       }
       
-      // Agregar imágenes
-      if (data.images) {
-        data.images.forEach((image, index) => {
-          formData.append(`images[${index}]`, image);
+      // Agregar imágenes si se proporcionan
+      if (data.images && data.images.length > 0) {
+        console.log('Agregando imágenes:', data.images);
+        // Solo enviar archivos válidos (no vacíos)
+        const validImages = data.images.filter(image => {
+          const isValid = image && image.size > 0 && image.type.startsWith('image/');
+          console.log(`Validando imagen ${image?.name}:`, { size: image?.size, type: image?.type, isValid });
+          return isValid;
         });
+        console.log('Imágenes válidas a enviar:', validImages.length);
+        console.log('Detalles de imágenes válidas:', validImages.map(img => ({ name: img.name, size: img.size, type: img.type })));
+        
+        if (validImages.length > 0) {
+          validImages.forEach((image, index) => {
+            console.log(`Agregando imagen ${index}:`, image.name, image.size, image.type);
+            formData.append(`images[${index}]`, image);
+          });
+        } else {
+          console.log('No hay imágenes válidas para enviar');
+        }
+      } else {
+        console.log('No se proporcionaron imágenes para enviar');
       }
 
       // Obtener token de autenticación
@@ -220,6 +238,8 @@ class ProductService {
     try {
       const formData = new FormData();
       
+      console.log('updateProduct - datos recibidos:', data);
+      
       // Agregar campos que se van a actualizar
       if (data.category_id) formData.append('category_id', data.category_id.toString());
       if (data.name) formData.append('name', data.name);
@@ -241,14 +261,48 @@ class ProductService {
       }
       
       // Agregar imágenes si se proporcionan
-      if (data.images) {
-        data.images.forEach((image, index) => {
-          formData.append(`images[${index}]`, image);
+      if (data.images && data.images.length > 0) {
+        console.log('Agregando imágenes:', data.images);
+        // Solo enviar archivos válidos (no vacíos)
+        const validImages = data.images.filter(image => {
+          const isValid = image && image.size > 0 && image.type.startsWith('image/');
+          console.log(`Validando imagen ${image?.name}:`, { size: image?.size, type: image?.type, isValid });
+          return isValid;
+        });
+        console.log('Imágenes válidas a enviar:', validImages.length);
+        console.log('Detalles de imágenes válidas:', validImages.map(img => ({ name: img.name, size: img.size, type: img.type })));
+        
+        if (validImages.length > 0) {
+          validImages.forEach((image, index) => {
+            console.log(`Agregando imagen ${index}:`, image.name, image.size, image.type);
+            formData.append(`images[${index}]`, image);
+          });
+        } else {
+          console.log('No hay imágenes válidas para enviar');
+        }
+      } else {
+        console.log('No se proporcionaron imágenes para enviar');
+      }
+
+      // Agregar imágenes a eliminar si se proporcionan
+      if (data.remove_images) {
+        console.log('Agregando imágenes a eliminar:', data.remove_images);
+        data.remove_images.forEach((imagePath, index) => {
+          formData.append(`remove_images[${index}]`, imagePath);
         });
       }
 
       // Laravel espera POST + _method=PUT para FormData
       formData.append('_method', 'PUT');
+
+      // Debug: mostrar contenido del FormData
+      console.log('FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+        if (value instanceof File) {
+          console.log(`  - File: ${value.name}, size: ${value.size}, type: ${value.type}`);
+        }
+      }
 
       // Obtener token de autenticación
       const token = localStorage.getItem('auth_token');
@@ -261,8 +315,11 @@ class ProductService {
       });
       
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating product:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+      }
       throw error;
     }
   }
