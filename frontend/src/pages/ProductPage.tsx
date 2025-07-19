@@ -64,11 +64,6 @@ export const ProductPage: React.FC = () => {
       .finally(() => setLoading(false));
   }, [slug]);
 
-  // Scroll hacia arriba cuando se carga la página
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
   // Cargar productos relacionados
   useEffect(() => {
     if (!product?.category?.slug) return;

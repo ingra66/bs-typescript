@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
+import { ShoppingCart } from 'lucide-react';
 import { useCartStore } from '../../stores/cartStore';
 import { useWishlistStore } from '../../stores/wishlistStore';
 import type { Product } from '../../services/productService';
 import AutoCloseAlertModal from '../ui/AutoCloseAlertModal';
 import AlertModal from '../ui/AlertModal';
+import { Button } from '../ui/Button';
 
 interface WishlistProductCardProps {
   product: Product;
@@ -98,16 +100,14 @@ const WishlistProductCard: React.FC<WishlistProductCardProps> = ({
       image: "flex-1 flex items-center justify-center p-2 relative",
       info: "p-3 text-center",
       title: "text-xs text-gray-300 mb-1 line-clamp-2",
-      price: "text-sm font-bold text-white",
-      button: "w-full bg-[#FF0000] hover:bg-black text-white px-2 py-1 text-xs font-medium transition-all duration-200 border border-white"
+      price: "text-sm font-bold text-white"
     },
     compact: {
       container: "bg-transparent transition-all duration-300 cursor-pointer group aspect-square flex flex-col",
       image: "flex-1 flex items-center justify-center p-1 relative",
       info: "p-2 text-center",
       title: "text-xs text-gray-300 mb-1 line-clamp-2",
-      price: "text-sm font-bold text-white",
-      button: "w-full bg-[#FF0000] hover:bg-black text-white px-1 py-1 text-xs font-medium transition-all duration-200 border border-white"
+      price: "text-sm font-bold text-white"
     }
   };
 
@@ -238,19 +238,18 @@ const WishlistProductCard: React.FC<WishlistProductCardProps> = ({
           </div>
         </div>
 
-        {/* Botón minimalista */}
+        {/* Botón unificado */}
         <div className="p-3 pt-0">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <Button
             onClick={handleAddToCart}
             disabled={product.stock === 0}
-            className={`${config.button} ${
-              product.stock === 0 ? 'bg-gray-400 cursor-not-allowed' : ''
-            }`}
-          >
-            {product.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
-          </motion.button>
+            variant="primary"
+            size="sm"
+            text={product.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
+            iconBefore={<ShoppingCart size={16} />}
+            fullWidth
+            className="text-xs"
+          />
         </div>
       </motion.div>
       

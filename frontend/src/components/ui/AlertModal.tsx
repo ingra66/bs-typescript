@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from './Button';
 
 interface AlertModalProps {
   isOpen: boolean;
@@ -86,51 +87,19 @@ const AlertModal: React.FC<AlertModalProps> = ({
             justifyContent: 'center'
           }}
         >
-          <button
+          <Button
             onClick={onCancel}
-            style={{
-              backgroundColor: '#374151',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '8px 16px',
-              fontSize: '14px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#4B5563';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#374151';
-            }}
-          >
-            {cancelText}
-          </button>
+            variant="secondary"
+            size="sm"
+            text={cancelText}
+          />
           
-          <button
+          <Button
             onClick={onConfirm}
-            style={{
-              backgroundColor: '#DC2626',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '8px 16px',
-              fontSize: '14px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#B91C1C';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#DC2626';
-            }}
-          >
-            {confirmText}
-          </button>
+            variant="primary"
+            size="sm"
+            text={confirmText}
+          />
         </div>
       </div>
     </div>

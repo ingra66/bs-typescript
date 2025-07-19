@@ -4,12 +4,15 @@ import { Search, Grid, List } from 'lucide-react';
 import { motion } from "framer-motion";
 import { useCartStore } from '../stores/cartStore';
 import type { Category, Product } from '../services/productService';
+import productService from '../services/productService';
+import categoryService from '../services/categoryService';
 import { ItemGrid, convertProductsToGridItems, type GridItem } from '../components/ui/ItemGrid';
 import { CategoryGrid } from '../components/categories/CategoryGrid';
 import UnifiedProductCard from '../components/products/UnifiedProductCard';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import AlertModal from '../components/ui/AlertModal';
 import AutoCloseAlertModal from '../components/ui/AutoCloseAlertModal';
+import { Button } from '../components/ui/Button';
 
 export const Products: React.FC = () => {
   const { categorySlug } = useParams<{ categorySlug?: string }>();
@@ -20,6 +23,7 @@ export const Products: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'latest' | 'price-asc' | 'price-desc' | 'name'>('latest');
@@ -28,56 +32,28 @@ export const Products: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        console.log('Products: Cargando datos, categorySlug:', categorySlug);
-        
-        // Cargar categorías
-        const categoriesRes = await fetch('http://localhost:8000/api/v1/categories');
-        
-        if (!categoriesRes.ok) {
-          console.error('Products: Error HTTP al cargar categorías:', categoriesRes.status, categoriesRes.statusText);
-          throw new Error(`Error ${categoriesRes.status}: ${categoriesRes.statusText}`);
-        }
-        
-        const categoriesResponse = await categoriesRes.json();
-        console.log('Products: Respuesta de categorías:', categoriesResponse);
-        
-        if (categoriesResponse.success) {
-          setCategories(categoriesResponse.data);
-        }
+        // Cargar categorías usando método público
+        const categoriesResponse = await categoryService.getPublicCategories();
+        setCategories(categoriesResponse.data);
 
         // Si hay categorySlug, cargar productos de esa categoría
         if (categorySlug) {
-          const category = categoriesResponse.data.find((cat: Category) => cat.slug === categorySlug);
-          console.log('Products: Categoría encontrada:', category);
+          const productsResponse = await productService.getProductsByCategory(categorySlug);
+          setProducts(productsResponse.data);
           
-          if (category) {
-            setSelectedCategory(category);
-            
-            // Cargar productos de la categoría
-            const productsRes = await fetch(`http://localhost:8000/api/v1/categories/${categorySlug}/products`);
-            
-            if (!productsRes.ok) {
-              console.error('Products: Error HTTP:', productsRes.status, productsRes.statusText);
-              throw new Error(`Error ${productsRes.status}: ${productsRes.statusText}`);
-            }
-            
-            const productsResponse = await productsRes.json();
-            console.log('Products: Respuesta de productos:', productsResponse);
-            
-            if (productsResponse.success) {
-              setProducts(productsResponse.data);
-            } else {
-              console.error('Products: Error en respuesta de productos:', productsResponse);
-            }
-          } else {
-            console.error('Products: Categoría no encontrada para slug:', categorySlug);
-          }
+          // Encontrar la categoría seleccionada
+          const selected = categoriesResponse.data.find((cat: Category) => cat.slug === categorySlug);
+          setSelectedCategory(selected);
+        } else {
+          // Si no hay categorySlug, cargar todos los productos
+          const productsResponse = await productService.getProducts();
+          setProducts(productsResponse.data);
         }
-        // Si no hay categorySlug, solo cargar categorías (no productos)
       } catch (error) {
-        console.error('Products: Error loading data:', error);
+        console.error('Error loading data:', error);
+        setError('Error al cargar los datos');
       } finally {
         setLoading(false);
       }
@@ -85,25 +61,6 @@ export const Products: React.FC = () => {
 
     loadData();
   }, [categorySlug]);
-
-  // Scroll hacia arriba cuando cambie la categoría
-  useEffect(() => {
-    if (categorySlug) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [categorySlug]);
-
-  // Scroll hacia arriba cuando termine de cargar y haya una categoría seleccionada
-  useEffect(() => {
-    if (!loading && selectedCategory && categorySlug) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [loading, selectedCategory, categorySlug]);
-
-  // Scroll hacia arriba cuando cambie la ubicación
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [location.pathname]);
 
   // Filtrar y ordenar productos
   const filteredAndSortedProducts = products
@@ -212,12 +169,13 @@ export const Products: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* Título y breadcrumb */}
             <div>
-              <button
+              <Button
                 onClick={() => navigate('/products')}
+                variant="ghost"
+                size="sm"
+                text="← Volver a categorías"
                 className="text-red-400 hover:text-red-300 mb-2 text-sm font-medium"
-              >
-                ← Volver a categorías
-              </button>
+              />
               <h1 className="text-3xl font-bold text-white">
                 {selectedCategory?.name?.toUpperCase() || 'PRODUCTOS'}
               </h1>
@@ -254,18 +212,22 @@ export const Products: React.FC = () => {
 
               {/* Vista */}
               <div className="flex border border-gray-600 rounded-lg overflow-hidden">
-                <button
+                <Button
                   onClick={() => setViewMode('grid')}
-                  className={`px-3 py-2 ${viewMode === 'grid' ? 'bg-red-600 text-white' : 'bg-black text-gray-300'}`}
+                  variant={viewMode === 'grid' ? "primary" : "secondary"}
+                  size="sm"
+                  className="px-3 py-2"
                 >
                   <Grid size={20} />
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setViewMode('list')}
-                  className={`px-3 py-2 ${viewMode === 'list' ? 'bg-red-600 text-white' : 'bg-black text-gray-300'}`}
+                  variant={viewMode === 'list' ? "primary" : "secondary"}
+                  size="sm"
+                  className="px-3 py-2"
                 >
                   <List size={20} />
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -277,12 +239,12 @@ export const Products: React.FC = () => {
         {filteredAndSortedProducts.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-xl text-gray-300 mb-4">No se encontraron productos en esta categoría</p>
-            <button
+            <Button
               onClick={() => navigate('/products')}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors duration-200"
-            >
-              Ver todas las categorías
-            </button>
+              variant="primary"
+              size="md"
+              text="Ver todas las categorías"
+            />
           </div>
         ) : (
           <div className={`grid gap-6 ${

@@ -212,14 +212,12 @@ export const Hero: React.FC = () => {
           <div className="absolute bottom-20 left-8 animate-slide-up">
             <Button 
               onClick={handleVerColeccion}
-              className="bg-[#FF0000] hover:bg-black text-white px-2 py-1 text-sm font-medium transition-all duration-200 hover:scale-105 border border-white"
-                  >
-              <span className="flex items-center gap-1">
-                Ver Colección
-                <ArrowRight className="w-2.5 h-2.5" />
-              </span>
-                  </Button>
-                </div>
+              variant="primary"
+              size="sm"
+              text="Ver Colección"
+              iconAfter={<ArrowRight className="w-2.5 h-2.5" />}
+            />
+          </div>
         )}
       </div>
     </section>

@@ -1,4 +1,6 @@
 import api from './api';
+import axios from 'axios';
+import { apiConfig } from '../config/api';
 
 export interface Category {
   id: number;
@@ -35,6 +37,38 @@ export interface CategoryStatistics {
 }
 
 class CategoryService {
+  // Crear instancia de axios para rutas públicas
+  private publicApi = axios.create({
+    baseURL: apiConfig.baseURL,
+    timeout: apiConfig.timeout,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  });
+
+  // Métodos públicos (sin autenticación)
+  
+  // Obtener todas las categorías públicas
+  async getPublicCategories() {
+    const response = await this.publicApi.get('/categories');
+    return response.data;
+  }
+
+  // Obtener categoría específica pública
+  async getPublicCategory(slug: string) {
+    const response = await this.publicApi.get(`/categories/${slug}`);
+    return response.data;
+  }
+
+  // Obtener categorías para navegación
+  async getNavigationCategories() {
+    const response = await this.publicApi.get('/categories/navigation');
+    return response.data;
+  }
+
+  // Métodos de admin (con autenticación)
+  
   // Listar categorías con paginación y filtros
   async getCategories(params?: {
     page?: number;

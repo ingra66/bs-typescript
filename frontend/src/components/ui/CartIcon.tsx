@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { useCartStore } from '../../stores/cartStore';
+import { Button } from './Button';
 
 interface CartIconProps {
   className?: string;
@@ -21,8 +22,10 @@ const CartIcon: React.FC<CartIconProps> = ({ className = '', onClick }) => {
 
   return (
     <div className="relative">
-      <button
+      <Button
         onClick={handleClick}
+        variant="ghost"
+        size="sm"
         className={`relative p-2 text-white hover:text-gray-300 transition-colors ${className}`}
         aria-label="Carrito de compras"
       >
@@ -32,7 +35,7 @@ const CartIcon: React.FC<CartIconProps> = ({ className = '', onClick }) => {
             {totalItems > 99 ? '99+' : totalItems}
           </span>
         )}
-      </button>
+      </Button>
     </div>
   );
 };

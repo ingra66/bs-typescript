@@ -5,6 +5,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import EmptyState from '../components/ui/EmptyState';
 import WishlistProductCard from '../components/products/WishlistProductCard';
 import { Link } from 'react-router-dom';
+import { Button } from '../components/ui/Button';
 
 const Wishlist: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
@@ -38,12 +39,12 @@ const Wishlist: React.FC = () => {
             <p className="text-gray-400 mb-6">
               Guarda tus productos favoritos y accede a ellos desde cualquier lugar
             </p>
-            <Link
-              to="/login"
-              className="inline-block bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200"
-            >
-              Iniciar sesión
-            </Link>
+            <Button
+              variant="primary"
+              size="md"
+              text="Iniciar sesión"
+              onClick={() => window.location.href = '/login'}
+            />
           </div>
         </div>
       </div>
@@ -69,12 +70,12 @@ const Wishlist: React.FC = () => {
               Error al cargar favoritos
             </h1>
             <p className="text-gray-400 mb-6">{error}</p>
-            <button
+            <Button
               onClick={() => fetchWishlist()}
-              className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200"
-            >
-              Intentar de nuevo
-            </button>
+              variant="primary"
+              size="md"
+              text="Intentar de nuevo"
+            />
           </div>
         </div>
       </div>

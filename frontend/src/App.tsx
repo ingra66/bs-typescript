@@ -20,6 +20,7 @@ import OrderDetailPage from './pages/OrderDetailPage';
 import Wishlist from './pages/Wishlist';
 import CartSync from './components/cart/CartSync';
 import { useWishlistSync } from './hooks/useWishlistSync';
+import { useScrollToTop } from './hooks/useScrollToTop';
 // import CartDebug from './components/cart/CartDebug';
 
 function App() {
@@ -28,6 +29,9 @@ function App() {
   
   // Sincronizar wishlist
   useWishlistSync();
+  
+  // Hacer scroll hasta arriba en cada navegación
+  useScrollToTop();
 
   return (
     <>

@@ -289,9 +289,12 @@ const CartPage: React.FC = () => {
                   </div>
                   <div className="row">
                     <div className="col-12">
-                      <button className="btn btn-link text-danger p-0 text-decoration-underline">
-                        Calcular envío
-                      </button>
+                      <Button
+                        variant="text"
+                        text="Calcular envío"
+                        onClick={() => navigate('/shipping')}
+                        className="text-danger p-0 text-decoration-underline"
+                      />
                     </div>
                   </div>
                 </div>

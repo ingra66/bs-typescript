@@ -9,6 +9,7 @@ import UnifiedProductCard from './UnifiedProductCard';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import AlertModal from '../ui/AlertModal';
 import AutoCloseAlertModal from '../ui/AutoCloseAlertModal';
+import { Button } from '../ui/Button';
 
 export interface ProductFilterCarouselProduct {
   id: number;
@@ -17,6 +18,7 @@ export interface ProductFilterCarouselProduct {
   price: number | string;
   image: string;
   category_id: number;
+  category_slug?: string;
 }
 
 interface ProductFilterCarouselProps {
@@ -32,7 +34,7 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
   const [filteredProducts, setFilteredProducts] = useState<ProductFilterCarouselProduct[]>([]);
   const [showAlert, setShowAlert] = useState(false);
   const itemsPerView = 4;
-  const maxProducts = 12;
+  const maxProducts = 20; // Aumentar el número máximo de productos
 
   const navigate = useNavigate();
   const { addItem } = useCartStore();
@@ -44,7 +46,7 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
         setLoading(true);
         const [categoriesResponse, productsResponse] = await Promise.all([
           fetch('http://localhost:8000/api/v1/categories').then(res => res.json()),
-          fetch('http://localhost:8000/api/v1/products?active=true').then(res => res.json())
+          fetch('http://localhost:8000/api/v1/products?active=true&per_page=50').then(res => res.json())
         ]);
 
         if (categoriesResponse.success) {
@@ -72,6 +74,7 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
             price: product.price,
             image: getImageUrl(product.main_image || product.images?.[0]),
             category_id: product.category_id,
+            category_slug: product.category?.slug,
             brand: product.category?.name
           }));
           setProducts(formattedProducts);
@@ -123,6 +126,10 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
     setSelectedCategory(categoryId);
   };
 
+  const handleVerMasClick = (categorySlug: string) => {
+    navigate(`/category/${categorySlug}`);
+  };
+
   // Crear array de productos visibles
   const getVisibleProducts = () => {
     if (filteredProducts.length === 0) return [];
@@ -141,6 +148,11 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
   };
 
   const visibleProducts = getVisibleProducts();
+
+  // Obtener la categoría seleccionada actual
+  const selectedCategoryData = selectedCategory 
+    ? categories.find(cat => cat.id === selectedCategory) 
+    : null;
 
   if (loading) {
     return (
@@ -186,24 +198,24 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
               
               {/* Categorías dinámicas del backend */}
               <div className="space-y-1">
-                <button
+                <Button
                   onClick={() => handleCategoryClick(null)}
-                  className={`w-full text-left px-3 py-2 rounded-none text-sm category-button ${
-                    selectedCategory === null ? 'active' : ''
-                  }`}
-                >
-                  TODOS
-                </button>
+                  variant={selectedCategory === null ? "primary" : "secondary"}
+                  size="sm"
+                  text="TODOS"
+                  fullWidth
+                  className="justify-start rounded-none text-sm"
+                />
                 {categories.map((category) => (
-                  <button
+                  <Button
                     key={category.id}
                     onClick={() => handleCategoryClick(category.id)}
-                    className={`w-full text-left px-3 py-2 rounded-none text-sm category-button ${
-                      selectedCategory === category.id ? 'active' : ''
-                    }`}
-                  >
-                    {category.name.toUpperCase()}
-                  </button>
+                    variant={selectedCategory === category.id ? "primary" : "secondary"}
+                    size="sm"
+                    text={category.name.toUpperCase()}
+                    fullWidth
+                    className="justify-start rounded-none text-sm"
+                  />
                 ))}
               </div>
             </div>
@@ -214,37 +226,70 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
             {filteredProducts.length === 0 ? (
               <div className="text-center text-white py-16">
                 <p className="text-xl">No se encontraron productos en esta categoría</p>
-                <button
+                <Button
                   onClick={() => handleCategoryClick(null)}
-                  className="mt-4 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors duration-200"
-                >
-                  Ver todos los productos
-                </button>
+                  variant="primary"
+                  size="md"
+                  text="Ver todos los productos"
+                  className="mt-4"
+                />
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 h-full">
-                {filteredProducts.map((product, index) => (
-                  <UnifiedProductCard
-                    key={`${product.id}-${index}`}
-                    product={{
-                      id: product.id,
-                      name: product.name,
-                      price: Number(product.price),
-                      main_image: product.image,
-                      stock: 99,
-                      description: '',
-                      category_id: product.category_id,
-                      sku: '',
-                      slug: product.name.toLowerCase().replace(/\s+/g, '-'),
-                      is_active: true,
-                      is_featured: false,
-                      created_at: '',
-                      updated_at: '',
-                      images: []
-                    }}
-                    variant="default"
-                  />
-                ))}
+              <div className="space-y-6">
+                {/* Header con título de categoría y botón Ver más */}
+                {selectedCategoryData && (
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold text-white">
+                      {selectedCategoryData.name.toUpperCase()}
+                    </h3>
+                    <Button
+                      onClick={() => handleVerMasClick(selectedCategoryData.slug)}
+                      variant="primary"
+                      size="sm"
+                      text="VER MÁS"
+                      className="px-6"
+                    />
+                  </div>
+                )}
+
+                {/* Grid de productos */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {filteredProducts.map((product, index) => (
+                    <UnifiedProductCard
+                      key={`${product.id}-${index}`}
+                      product={{
+                        id: product.id,
+                        name: product.name,
+                        price: Number(product.price),
+                        main_image: product.image,
+                        stock: 99,
+                        description: '',
+                        category_id: product.category_id,
+                        sku: '',
+                        slug: product.name.toLowerCase().replace(/\s+/g, '-'),
+                        is_active: true,
+                        is_featured: false,
+                        created_at: '',
+                        updated_at: '',
+                        images: []
+                      }}
+                      variant="default"
+                    />
+                  ))}
+                </div>
+
+                {/* Botón Ver más para categoría específica */}
+                {selectedCategoryData && filteredProducts.length > 0 && (
+                  <div className="text-center mt-6">
+                    <Button
+                      onClick={() => handleVerMasClick(selectedCategoryData.slug)}
+                      variant="primary"
+                      size="md"
+                      text={`VER TODOS LOS PRODUCTOS DE ${selectedCategoryData.name.toUpperCase()}`}
+                      className="px-8 py-3"
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>

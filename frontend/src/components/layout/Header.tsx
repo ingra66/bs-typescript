@@ -1,17 +1,28 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Facebook, Instagram, Search, Heart, User, Menu, X, LogOut, Settings, UserCheck, ChevronDown, ShoppingCart, Bell } from "lucide-react";
-import { useAuthStore } from "@/stores/authStore";
-import { useCartStore } from "@/stores/cartStore";
-import { useWishlistStore } from "@/stores/wishlistStore";
-import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
-import CartIcon from "@/components/ui/CartIcon";
-import CartModal from "@/components/cart/CartModal";
-import WishlistIcon from "@/components/ui/WishlistIcon";
-import { Card, CardContent } from "../ui/Card";
-import { Button } from "../ui/Button";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import * as NavigationMenu from "@radix-ui/react-navigation-menu";
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { 
+  Facebook, 
+  Instagram, 
+  Search, 
+  ShoppingCart, 
+  User, 
+  Bell, 
+  Menu, 
+  X, 
+  Settings, 
+  LogOut, 
+  UserCheck 
+} from 'lucide-react';
+import { useAuthStore } from '../../stores/authStore';
+import { useCartStore } from '../../stores/cartStore';
+import { useWishlistStore } from '../../stores/wishlistStore';
+import { Button } from '../ui/Button';
+import WishlistIcon from '../ui/WishlistIcon';
+import CartIcon from '../ui/CartIcon';
+import { ConnectionStatus } from '../ui/ConnectionStatus';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import categoryService from '../../services/categoryService';
 
 interface Category {
   id: number;
@@ -86,12 +97,17 @@ export const Header: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-            fetch('http://localhost:8000/api/v1/categories/navigation')
-      .then(res => res.json())
-      .then(data => {
-        setCategories(data.data || []);
-      })
-      .catch(() => setCategories([]));
+    const loadCategories = async () => {
+      try {
+        const response = await categoryService.getNavigationCategories();
+        setCategories(response.data || []);
+      } catch (error) {
+        console.error('Error loading categories:', error);
+        setCategories([]);
+      }
+    };
+
+    loadCategories();
   }, []);
 
   useEffect(() => {
@@ -153,10 +169,6 @@ export const Header: React.FC = () => {
         <Link 
           to="/" 
           className="flex items-center justify-center"
-          onClick={() => {
-            // Scroll hacia arriba del todo
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
         >
           <img
             src="/gif.gif"
@@ -459,7 +471,7 @@ export const Header: React.FC = () => {
         </div>
       )}
       
-      <CartModal />
+      {/* CartModal is removed as per the new_code, as it's not in the new_code */}
     </div>
   );
 }; 

@@ -58,16 +58,33 @@ class AdminCategoryController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        // Debug: Log request data
+        \Log::info('Category store request', [
+            'has_file' => $request->hasFile('image'),
+            'files' => $request->allFiles(),
+            'data' => $request->all(),
+            'content_type' => $request->header('Content-Type'),
+            'storage_path' => storage_path('app/public'),
+            'storage_exists' => \Storage::disk('public')->exists('categories'),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_active' => 'nullable|in:true,false,0,1',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'is_active' => 'nullable|in:true,false,0,1,"true","false","0","1"',
         ]);
 
         // Convertir is_active a boolean si está presente
         if (isset($validated['is_active'])) {
-            $validated['is_active'] = filter_var($validated['is_active'], FILTER_VALIDATE_BOOLEAN);
+            if (is_string($validated['is_active'])) {
+                $validated['is_active'] = in_array(strtolower($validated['is_active']), ['true', '1', 'yes']);
+            } else {
+                $validated['is_active'] = (bool) $validated['is_active'];
+            }
+        } else {
+            // Si no se proporciona, establecer como true por defecto
+            $validated['is_active'] = true;
         }
 
         // Generar slug único
@@ -78,18 +95,83 @@ class AdminCategoryController extends Controller
             $counter++;
         }
 
-        // Manejar imagen
+        // Manejar imagen con método alternativo
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('categories', 'public');
+            $file = $request->file('image');
+            
+            // Verificar que el archivo sea válido
+            if ($file && $file->isValid() && $file->getSize() > 0) {
+                try {
+                    // Método alternativo: usar move() en lugar de store()
+                    $fileName = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                    $destinationPath = storage_path('app/public/categories');
+                    
+                    // Crear directorio si no existe
+                    if (!file_exists($destinationPath)) {
+                        mkdir($destinationPath, 0755, true);
+                        \Log::info('Created categories directory: ' . $destinationPath);
+                    }
+                    
+                    $fullPath = $destinationPath . '/' . $fileName;
+                    
+                    \Log::info('Attempting to move file', [
+                        'fileName' => $fileName,
+                        'destinationPath' => $destinationPath,
+                        'fullPath' => $fullPath,
+                    ]);
+                    
+                    // Mover archivo usando move()
+                    if ($file->move($destinationPath, $fileName)) {
+                        $validated['image'] = 'categories/' . $fileName;
+                        \Log::info('Image moved successfully: ' . $validated['image']);
+                    } else {
+                        \Log::error('Failed to move image file');
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Error al mover la imagen',
+                        ], 422);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Error moving image: ' . $e->getMessage());
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Error al subir la imagen: ' . $e->getMessage(),
+                    ], 422);
+                }
+            } else {
+                \Log::warning('Invalid image file provided', [
+                    'file_exists' => $file ? 'yes' : 'no',
+                    'is_valid' => $file ? $file->isValid() : 'no',
+                    'size' => $file ? $file->getSize() : 'no',
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El archivo de imagen no es válido',
+                ], 422);
+            }
+        } else {
+            // Si no hay imagen, no incluir el campo
+            unset($validated['image']);
+            \Log::info('No image provided');
         }
 
-        $category = Category::create($validated);
+        try {
+            $category = Category::create($validated);
+            
+            \Log::info('Category created successfully', ['category_id' => $category->id]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Categoría creada exitosamente',
-            'data' => $category,
-        ], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Categoría creada exitosamente',
+                'data' => $category,
+            ], 201);
+        } catch (\Exception $e) {
+            \Log::error('Error creating category: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear la categoría: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -131,13 +213,17 @@ class AdminCategoryController extends Controller
                 Rule::unique('categories')->ignore($category->id)
             ],
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_active' => 'nullable|in:true,false,0,1',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'is_active' => 'nullable|in:true,false,0,1,"true","false","0","1"',
         ]);
 
         // Convertir is_active a boolean si está presente
         if (isset($validated['is_active'])) {
-            $validated['is_active'] = filter_var($validated['is_active'], FILTER_VALIDATE_BOOLEAN);
+            if (is_string($validated['is_active'])) {
+                $validated['is_active'] = in_array(strtolower($validated['is_active']), ['true', '1', 'yes']);
+            } else {
+                $validated['is_active'] = (bool) $validated['is_active'];
+            }
         }
 
         // Generar slug único si el nombre cambió
@@ -152,34 +238,97 @@ class AdminCategoryController extends Controller
             }
         }
 
-        // Manejar imagen
+        // Manejar imagen con método alternativo
         if ($request->hasFile('image')) {
-            \Log::info('Processing image upload', [
-                'original_name' => $request->file('image')->getClientOriginalName(),
-                'size' => $request->file('image')->getSize(),
-                'mime_type' => $request->file('image')->getMimeType()
-            ]);
-
-            // Eliminar imagen anterior si existe
-            if ($category->image) {
-                \Storage::disk('public')->delete($category->image);
-                \Log::info('Deleted old image: ' . $category->image);
-            }
+            $file = $request->file('image');
             
-            $validated['image'] = $request->file('image')->store('categories', 'public');
-            \Log::info('Saved new image: ' . $validated['image']);
+            // Verificar que el archivo sea válido
+            if ($file && $file->isValid() && $file->getSize() > 0) {
+                \Log::info('Processing image upload', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType()
+                ]);
+
+                try {
+                    // Eliminar imagen anterior si existe
+                    if ($category->image) {
+                        $oldImagePath = storage_path('app/public/' . $category->image);
+                        if (file_exists($oldImagePath)) {
+                            unlink($oldImagePath);
+                            \Log::info('Deleted old image: ' . $category->image);
+                        }
+                    }
+                    
+                    // Método alternativo: usar move() en lugar de store()
+                    $fileName = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                    $destinationPath = storage_path('app/public/categories');
+                    
+                    // Crear directorio si no existe
+                    if (!file_exists($destinationPath)) {
+                        mkdir($destinationPath, 0755, true);
+                        \Log::info('Created categories directory: ' . $destinationPath);
+                    }
+                    
+                    $fullPath = $destinationPath . '/' . $fileName;
+                    
+                    \Log::info('Attempting to move file', [
+                        'fileName' => $fileName,
+                        'destinationPath' => $destinationPath,
+                        'fullPath' => $fullPath,
+                    ]);
+                    
+                    // Mover archivo usando move()
+                    if ($file->move($destinationPath, $fileName)) {
+                        $validated['image'] = 'categories/' . $fileName;
+                        \Log::info('Image moved successfully: ' . $validated['image']);
+                    } else {
+                        \Log::error('Failed to move image file');
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Error al mover la imagen',
+                        ], 422);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Error moving image: ' . $e->getMessage());
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Error al subir la imagen: ' . $e->getMessage(),
+                    ], 422);
+                }
+            } else {
+                \Log::warning('Invalid image file provided', [
+                    'file_exists' => $file ? 'yes' : 'no',
+                    'is_valid' => $file ? $file->isValid() : 'no',
+                    'size' => $file ? $file->getSize() : 'no',
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El archivo de imagen no es válido',
+                ], 422);
+            }
         } else {
-            \Log::info('No image file in request');
+            // Si no hay imagen, no incluir el campo
+            unset($validated['image']);
+            \Log::info('No image provided');
         }
 
-        \Log::info('Updating category with data:', $validated);
-        $category->update($validated);
+        try {
+            \Log::info('Updating category with data:', $validated);
+            $category->update($validated);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Categoría actualizada exitosamente',
-            'data' => $category->fresh()->load('products'),
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Categoría actualizada exitosamente',
+                'data' => $category->fresh()->load('products'),
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating category: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar la categoría: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

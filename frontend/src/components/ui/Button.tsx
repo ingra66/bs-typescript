@@ -3,15 +3,15 @@ import { type VariantProps, cva } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-red focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed",
+  "inline-flex items-center justify-center font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-red focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105",
   {
     variants: {
       variant: {
-        primary: "bg-brand-red text-white hover:bg-red-700 active:bg-red-800",
-        secondary: "bg-gray-800 text-white border-2 border-gray-600 hover:border-brand-red hover:text-brand-red",
-        outline: "border-2 border-brand-red text-brand-red bg-transparent hover:text-white hover:bg-brand-red",
-        ghost: "text-white hover:text-brand-red",
-        text: "text-brand-red hover:text-red-400 bg-transparent"
+        primary: "bg-[#FF0000] hover:bg-black text-white border border-white",
+        secondary: "bg-gray-800 text-white border-2 border-gray-600 hover:border-white hover:text-white hover:bg-black",
+        outline: "border-2 border-white text-white bg-transparent hover:bg-[#FF0000] hover:text-white",
+        ghost: "text-white hover:text-[#FF0000] hover:scale-110",
+        text: "text-[#FF0000] hover:text-red-400 bg-transparent hover:scale-105"
       },
       size: {
         sm: "h-8 px-3 text-sm rounded gap-1.5",

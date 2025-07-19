@@ -47,17 +47,58 @@ class ImageService
      */
     public function processImage(UploadedFile $image): string
     {
-        // Generar nombre único
-        $filename = $this->generateUniqueFilename($image);
-        $originalPath = $this->basePath . '/' . $filename;
-        
-        // Guardar imagen original
-        $image->storeAs($this->basePath, $filename, $this->disk);
-        
-        // Crear versiones optimizadas
-        $this->createOptimizedVersions($originalPath);
-        
-        return $originalPath;
+        // Debug: Log image details
+        \Log::info('Processing image', [
+            'original_name' => $image->getClientOriginalName(),
+            'size' => $image->getSize(),
+            'mime_type' => $image->getMimeType(),
+            'is_valid' => $image->isValid(),
+        ]);
+
+        // Verificar que el archivo sea válido
+        if (!$image->isValid() || $image->getSize() <= 0) {
+            \Log::error('Invalid image file provided');
+            throw new \Exception('El archivo de imagen no es válido');
+        }
+
+        try {
+            // Generar nombre único
+            $filename = $this->generateUniqueFilename($image);
+            $originalPath = $this->basePath . '/' . $filename;
+            
+            // Método alternativo: usar move() en lugar de storeAs()
+            $destinationPath = storage_path('app/public/' . $this->basePath);
+            
+            // Crear directorio si no existe
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+                \Log::info('Created products directory: ' . $destinationPath);
+            }
+            
+            $fullPath = $destinationPath . '/' . $filename;
+            
+            \Log::info('Attempting to move file', [
+                'filename' => $filename,
+                'destinationPath' => $destinationPath,
+                'fullPath' => $fullPath,
+            ]);
+            
+            // Mover archivo usando move()
+            if ($image->move($destinationPath, $filename)) {
+                \Log::info('Image moved successfully: ' . $originalPath);
+                
+                // Crear versiones optimizadas
+                $this->createOptimizedVersions($originalPath);
+                
+                return $originalPath;
+            } else {
+                \Log::error('Failed to move image file');
+                throw new \Exception('Error al mover la imagen');
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error processing image: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**
@@ -65,7 +106,12 @@ class ImageService
      */
     private function createOptimizedVersions(string $originalPath): void
     {
-        $originalFullPath = Storage::disk($this->disk)->path($originalPath);
+        $originalFullPath = storage_path('app/public/' . $originalPath);
+        
+        if (!file_exists($originalFullPath)) {
+            \Log::error('Original image not found: ' . $originalFullPath);
+            return;
+        }
         
         foreach ($this->sizes as $size => $dimensions) {
             $this->createOptimizedVersion($originalFullPath, $originalPath, $size, $dimensions);
@@ -98,8 +144,19 @@ class ImageService
             // Generar nombre del archivo optimizado
             $optimizedPath = $this->getOptimizedPath($originalPath, $size);
             
-            // Guardar versión optimizada
-            Storage::disk($this->disk)->put($optimizedPath, $image->encode());
+            // Método alternativo: usar putFileAs() o write directo
+            $optimizedFullPath = storage_path('app/public/' . $optimizedPath);
+            $optimizedDir = dirname($optimizedFullPath);
+            
+            // Crear directorio si no existe
+            if (!file_exists($optimizedDir)) {
+                mkdir($optimizedDir, 0755, true);
+            }
+            
+            // Guardar versión optimizada directamente
+            file_put_contents($optimizedFullPath, $image->encode());
+            
+            \Log::info('Optimized version created: ' . $optimizedPath);
             
         } catch (\Exception $e) {
             \Log::error("Error creating optimized version {$size}: " . $e->getMessage());
@@ -112,8 +169,9 @@ class ImageService
     public function getOptimizedUrl(string $originalPath, string $size = 'medium'): string
     {
         $optimizedPath = $this->getOptimizedPath($originalPath, $size);
+        $optimizedFullPath = storage_path('app/public/' . $optimizedPath);
         
-        if (Storage::disk($this->disk)->exists($optimizedPath)) {
+        if (file_exists($optimizedFullPath)) {
             return asset('storage/' . $optimizedPath);
         }
         
@@ -126,12 +184,14 @@ class ImageService
      */
     private function createOptimizedUrlOnDemand(string $originalPath, string $size): string
     {
-        if (!Storage::disk($this->disk)->exists($originalPath)) {
+        $originalFullPath = storage_path('app/public/' . $originalPath);
+        
+        if (!file_exists($originalFullPath)) {
             return asset('images/default-product.jpg');
         }
         
-        $originalFullPath = Storage::disk($this->disk)->path($originalPath);
         $optimizedPath = $this->getOptimizedPath($originalPath, $size);
+        $optimizedFullPath = storage_path('app/public/' . $optimizedPath);
         
         try {
             $image = $this->imageManager->read($originalFullPath);
@@ -144,7 +204,15 @@ class ImageService
             }
             
             $image->toJpeg(85);
-            Storage::disk($this->disk)->put($optimizedPath, $image->encode());
+            
+            // Crear directorio si no existe
+            $optimizedDir = dirname($optimizedFullPath);
+            if (!file_exists($optimizedDir)) {
+                mkdir($optimizedDir, 0755, true);
+            }
+            
+            // Guardar versión optimizada directamente
+            file_put_contents($optimizedFullPath, $image->encode());
             
             return asset('storage/' . $optimizedPath);
             
@@ -162,9 +230,11 @@ class ImageService
         $extension = $image->getClientOriginalExtension();
         $filename = Str::random(40) . '.' . $extension;
         
-        // Verificar que no exista
-        while (Storage::disk($this->disk)->exists($this->basePath . '/' . $filename)) {
+        // Verificar que no exista usando método alternativo
+        $fullPath = storage_path('app/public/' . $this->basePath . '/' . $filename);
+        while (file_exists($fullPath)) {
             $filename = Str::random(40) . '.' . $extension;
+            $fullPath = storage_path('app/public/' . $this->basePath . '/' . $filename);
         }
         
         return $filename;
@@ -185,15 +255,20 @@ class ImageService
     public function deleteImage(string $originalPath): void
     {
         // Eliminar imagen original
-        if (Storage::disk($this->disk)->exists($originalPath)) {
-            Storage::disk($this->disk)->delete($originalPath);
+        $originalFullPath = storage_path('app/public/' . $originalPath);
+        if (file_exists($originalFullPath)) {
+            unlink($originalFullPath);
+            \Log::info('Deleted original image: ' . $originalPath);
         }
         
         // Eliminar versiones optimizadas
         foreach (array_keys($this->sizes) as $size) {
             $optimizedPath = $this->getOptimizedPath($originalPath, $size);
-            if (Storage::disk($this->disk)->exists($optimizedPath)) {
-                Storage::disk($this->disk)->delete($optimizedPath);
+            $optimizedFullPath = storage_path('app/public/' . $optimizedPath);
+            
+            if (file_exists($optimizedFullPath)) {
+                unlink($optimizedFullPath);
+                \Log::info('Deleted optimized image: ' . $optimizedPath);
             }
         }
     }
