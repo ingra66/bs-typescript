@@ -6,7 +6,7 @@ Este sistema proporciona componentes especializados para el manejo de imágenes 
 
 ## Componentes
 
-### 1. ImageUploader
+### 1. ImageUploadera
 
 Componente para subir imágenes con drag & drop y preview en tiempo real.
 
