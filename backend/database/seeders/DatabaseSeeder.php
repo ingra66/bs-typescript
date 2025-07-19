@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             CouponSeeder::class,
             ShippingZoneSeeder::class,
             TaxRateSeeder::class,
+            WishlistSeeder::class,
         ]);
     }
 }

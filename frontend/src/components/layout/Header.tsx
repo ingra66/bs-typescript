@@ -3,9 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { Facebook, Instagram, Search, Heart, User, Menu, X, LogOut, Settings, UserCheck, ChevronDown, ShoppingCart, Bell } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { useCartStore } from "@/stores/cartStore";
+import { useWishlistStore } from "@/stores/wishlistStore";
 import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
 import CartIcon from "@/components/ui/CartIcon";
 import CartModal from "@/components/cart/CartModal";
+import WishlistIcon from "@/components/ui/WishlistIcon";
 import { Card, CardContent } from "../ui/Card";
 import { Button } from "../ui/Button";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -80,6 +82,7 @@ export const Header: React.FC = () => {
   const [showCategories, setShowCategories] = useState(true);
   const { user, isAuthenticated, logout } = useAuthStore();
   const { toggleCart, getTotalItems } = useCartStore();
+  const { getWishlistCount } = useWishlistStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -164,7 +167,9 @@ export const Header: React.FC = () => {
 
         {/* Derecha: Iconos */}
         <div className="flex items-center gap-2">
-          <IconButton icon={Heart} badge="3" />
+          <Link to="/wishlist">
+            <IconButton icon={WishlistIcon} />
+          </Link>
           <IconButton icon={Bell} badge="2" />
           <IconButton icon={ShoppingCart} badge={getTotalItems().toString()} onClick={toggleCart} />
 

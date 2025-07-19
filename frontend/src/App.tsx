@@ -17,12 +17,17 @@ import PaymentFailure from './pages/PaymentFailure';
 import PaymentPending from './pages/PaymentPending';
 import Orders from './pages/Orders';
 import OrderDetailPage from './pages/OrderDetailPage';
+import Wishlist from './pages/Wishlist';
 import CartSync from './components/cart/CartSync';
+import { useWishlistSync } from './hooks/useWishlistSync';
 // import CartDebug from './components/cart/CartDebug';
 
 function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  
+  // Sincronizar wishlist
+  useWishlistSync();
 
   return (
     <>
@@ -45,6 +50,7 @@ function App() {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/orders/:orderId" element={<OrderDetailPage />} />
+              <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/payment/success" element={<PaymentSuccess />} />
               <Route path="/payment/failure" element={<PaymentFailure />} />
               <Route path="/payment/pending" element={<PaymentPending />} />

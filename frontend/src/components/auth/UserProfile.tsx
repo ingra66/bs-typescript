@@ -26,7 +26,7 @@ export const UserProfile: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-black py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-white">
@@ -37,7 +37,7 @@ export const UserProfile: React.FC = () => {
           </p>
         </div>
 
-        <Card className="p-8 bg-gray-800 border-gray-700">
+        <Card className="p-8 bg-black border border-red-500 rounded-lg border-gray-700">
           <div className="space-y-6">
             {/* Información del usuario */}
             <div className="flex items-center space-x-4">
@@ -98,7 +98,7 @@ export const UserProfile: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="bg-gray-700 rounded-lg p-4">
+                <div className="bg-black rounded-lg p-4">
                   <h3 className="text-sm font-medium text-gray-300 mb-2">
                     Estado de la cuenta
                   </h3>

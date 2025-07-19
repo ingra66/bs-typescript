@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -79,6 +79,17 @@ export default function AdminCustomers() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userStats, setUserStats] = useState<any>(null);
   const [userStatsError, setUserStatsError] = useState<string | null>(null);
+  
+  // Wishlist
+  const [wishlistModalOpen, setWishlistModalOpen] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [userWishlist, setUserWishlist] = useState<any[]>([]);
+  const [wishlistError, setWishlistError] = useState<string | null>(null);
+
+  // Refs para manejar el foco
+  const statsModalRef = useRef<HTMLDivElement>(null);
+  const wishlistModalRef = useRef<HTMLDivElement>(null);
+  const viewWishlistButtonRef = useRef<HTMLButtonElement>(null);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -384,6 +395,64 @@ export default function AdminCustomers() {
     setSelectedUser(null);
     setUserStats(null);
     setUserStatsError(null);
+    
+    // Restaurar el foco al body después de cerrar el modal
+    setTimeout(() => {
+      document.body.focus();
+    }, 100);
+  };
+
+  const handleViewWishlist = async (user: User) => {
+    console.log('🔍 Obteniendo wishlist de usuario:', user);
+    setSelectedUser(user);
+    
+    // Cerrar el modal de estadísticas primero
+    setStatsModalOpen(false);
+    
+    // Esperar un poco para que el modal se cierre completamente
+    setTimeout(() => {
+      setWishlistModalOpen(true);
+      setWishlistLoading(true);
+      setUserWishlist([]);
+      setWishlistError(null);
+      
+      // Cargar los datos de wishlist
+      loadWishlistData(user);
+    }, 150);
+  };
+
+  const loadWishlistData = async (user: User) => {
+    try {
+      console.log('📊 Obteniendo wishlist para usuario ID:', user.id);
+      const response = await userService.getUserWishlist(user.id);
+      console.log('✅ Respuesta de wishlist:', response);
+      
+      if (response.success) {
+        setUserWishlist(response.data);
+        console.log('📈 Wishlist cargada:', response.data);
+      } else {
+        setWishlistError('No se pudo obtener la wishlist');
+        console.error('❌ Error en respuesta:', response);
+      }
+    } catch (err: any) {
+      console.error('❌ Error al obtener wishlist:', err);
+      setWishlistError('Error al obtener wishlist: ' + err.message);
+    } finally {
+      setWishlistLoading(false);
+      console.log('🏁 Finalizado obtención de wishlist');
+    }
+  };
+
+  const handleCloseWishlistModal = () => {
+    setWishlistModalOpen(false);
+    setSelectedUser(null);
+    setUserWishlist([]);
+    setWishlistError(null);
+    
+    // Restaurar el foco al body después de cerrar el modal
+    setTimeout(() => {
+      document.body.focus();
+    }, 100);
   };
 
   if (loading) {
@@ -650,7 +719,15 @@ export default function AdminCustomers() {
       </Card>
 
       {/* Modal de estadísticas de usuario */}
-      <Dialog open={statsModalOpen} onClose={handleCloseStatsModal} maxWidth="sm" fullWidth>
+      <Dialog 
+        open={statsModalOpen} 
+        onClose={handleCloseStatsModal} 
+        maxWidth="sm" 
+        fullWidth
+        disableEnforceFocus
+        disableAutoFocus
+        keepMounted={false}
+      >
         <DialogTitle>
           Estadísticas de {selectedUser?.name}
         </DialogTitle>
@@ -714,6 +791,15 @@ export default function AdminCustomers() {
           ) : null}
         </DialogContent>
         <DialogActions>
+          <Button 
+            ref={viewWishlistButtonRef}
+            onClick={() => handleViewWishlist(selectedUser!)}
+            color="secondary"
+            variant="outlined"
+            sx={{ mr: 'auto' }}
+          >
+            Ver Wishlist
+          </Button>
           <Button onClick={handleCloseStatsModal} color="primary">
             Cerrar
           </Button>
@@ -994,6 +1080,123 @@ export default function AdminCustomers() {
           <Button onClick={() => setDeleteDialogOpen(false)} disabled={deleteLoading}>Cancelar</Button>
           <Button onClick={confirmDeleteUser} color="error" disabled={deleteLoading}>
             {deleteLoading ? 'Eliminando...' : 'Eliminar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de wishlist de usuario */}
+      <Dialog 
+        open={wishlistModalOpen} 
+        onClose={handleCloseWishlistModal} 
+        maxWidth="md" 
+        fullWidth
+        disableEnforceFocus
+        disableAutoFocus
+        keepMounted={false}
+      >
+        <DialogTitle>
+          Wishlist de {selectedUser?.name}
+        </DialogTitle>
+        <DialogContent dividers>
+          {wishlistLoading ? (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <Typography variant="body1">Cargando wishlist...</Typography>
+            </Box>
+          ) : wishlistError ? (
+            <Alert severity="error">{wishlistError}</Alert>
+          ) : userWishlist.length === 0 ? (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <Typography variant="body1" color="text.secondary">
+                Este usuario no tiene productos en su wishlist.
+              </Typography>
+            </Box>
+          ) : (
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>
+                <b>Total de productos favoritos:</b> {userWishlist.length}
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {userWishlist.map((item) => (
+                  <Card key={item.id} sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                      {/* Imagen del producto */}
+                      <Box sx={{ mr: 2, width: 60, height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {item.product.main_image ? (
+                          <img
+                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/storage/${item.product.main_image}`}
+                            alt={item.product.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              borderRadius: '4px'
+                            }}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = '/placeholder.svg';
+                            }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              backgroundColor: 'grey.300',
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <Typography variant="caption" color="text.secondary">
+                              Sin imagen
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                      
+                      {/* Información del producto */}
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'medium', mb: 0.5 }}>
+                          {item.product.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                          {item.product.category?.name || 'Sin categoría'}
+                        </Typography>
+                        <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+                          ${Number(item.product.price).toFixed(2)}
+                        </Typography>
+                        {item.notes && (
+                          <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                            Nota: "{item.notes}"
+                          </Typography>
+                        )}
+                      </Box>
+                      
+                      {/* Link al producto */}
+                      <Box sx={{ ml: 2 }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => {
+                            const frontendUrl = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+                            window.open(`${frontendUrl}/product/${item.product.slug}`, '_blank');
+                          }}
+                        >
+                          Ver Producto
+                        </Button>
+                      </Box>
+                    </Box>
+                  </Card>
+                ))}
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseWishlistModal} color="primary">
+            Cerrar
           </Button>
         </DialogActions>
       </Dialog>

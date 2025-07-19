@@ -6,6 +6,9 @@ import { useCartStore } from "../stores/cartStore";
 import { Header } from "../components/layout/Header";
 import { Button } from "../components/ui/Button";
 import { ProductCarousel, type ProductCarouselProduct } from "../components/products/ProductCarousel";
+import AlertModal from '../components/ui/AlertModal';
+import AutoCloseAlertModal from '../components/ui/AutoCloseAlertModal';
+import WishlistButton from '../components/ui/WishlistButton';
 
 export const ProductPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -19,6 +22,8 @@ export const ProductPage: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState<ProductCarouselProduct[]>([]);
   const { addItem } = useCartStore();
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
 
   const getImageUrl = (imagePath: string | undefined) => {
     if (!imagePath) return '/placeholder.svg';
@@ -104,9 +109,9 @@ export const ProductPage: React.FC = () => {
         variant: selectedVariant
       };
       addItem(item);
-      alert('Producto agregado al carrito');
+      setShowSuccessAlert(true);
     } catch {
-      alert('Error al agregar al carrito');
+      setShowErrorAlert(true);
     } finally {
       setAdding(false);
     }
@@ -249,14 +254,23 @@ export const ProductPage: React.FC = () => {
                   <Button onClick={() => setQuantity(Math.min(selectedVariant ? selectedVariant.stock : product.stock, quantity + 1))} variant="ghost" size="sm" className="px-2 py-1 text-gray-400 hover:text-white">+</Button>
                 </div>
 
-                <Button
-                  onClick={handleAddToCart}
-                  disabled={selectedVariant ? selectedVariant.stock === 0 : product.stock === 0}
-                  isLoading={adding}
-                  fullWidth
-                  iconBefore={<ShoppingCart size={18} />}
-                  text={(selectedVariant ? selectedVariant.stock === 0 : product.stock === 0) ? 'Sin stock' : 'Agregar al carrito'}
-                />
+                <div className="flex space-x-3">
+                  <Button
+                    onClick={handleAddToCart}
+                    disabled={selectedVariant ? selectedVariant.stock === 0 : product.stock === 0}
+                    isLoading={adding}
+                    className="flex-1"
+                    iconBefore={<ShoppingCart size={18} />}
+                    text={(selectedVariant ? selectedVariant.stock === 0 : product.stock === 0) ? 'Sin stock' : 'Agregar al carrito'}
+                  />
+                  
+                  <WishlistButton
+                    productId={product.id}
+                    productName={product.name}
+                    size="lg"
+                    className="flex-shrink-0"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -272,6 +286,22 @@ export const ProductPage: React.FC = () => {
           </div>
         )}
       </div>
+      
+      <AutoCloseAlertModal
+        isOpen={showSuccessAlert}
+        title="Producto agregado"
+        message="El producto ha sido agregado al carrito exitosamente"
+        onClose={() => setShowSuccessAlert(false)}
+      />
+      
+      <AlertModal
+        isOpen={showErrorAlert}
+        title="Error"
+        message="Error al agregar el producto al carrito"
+        confirmText="Aceptar"
+        onConfirm={() => setShowErrorAlert(false)}
+        onCancel={() => setShowErrorAlert(false)}
+      />
     </div>
   );
 }; 

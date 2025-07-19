@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use App\Models\Wishlist; // Added this import for Wishlist model
 
 class AdminUserController extends Controller
 {
@@ -428,6 +429,104 @@ class AdminUserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener estadísticas generales',
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener la wishlist de un usuario específico
+     */
+    public function getUserWishlist($userId)
+    {
+        try {
+            Log::info('Admin accessing user wishlist', [
+                'admin_id' => auth()->id(),
+                'user_id' => $userId,
+            ]);
+
+            $user = User::findOrFail($userId);
+            
+            $wishlistItems = Wishlist::with(['product.category'])
+                ->where('user_id', $userId)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            Log::info('Wishlist items found', [
+                'admin_id' => auth()->id(),
+                'user_id' => $userId,
+                'wishlist_count' => $wishlistItems->count(),
+                'wishlist_items' => $wishlistItems->map(function($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product->name ?? 'N/A',
+                        'notes' => $item->notes,
+                    ];
+                }),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $wishlistItems,
+                'message' => 'Wishlist obtenida correctamente'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in admin user wishlist', [
+                'admin_id' => auth()->id(),
+                'user_id' => $userId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener wishlist: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Debug endpoint para probar wishlist
+     */
+    public function debugWishlistTest()
+    {
+        try {
+            // Verificar si hay datos de wishlist
+            $totalWishlistItems = Wishlist::count();
+            $usersWithWishlist = Wishlist::distinct('user_id')->count();
+            $productsInWishlist = Wishlist::distinct('product_id')->count();
+
+            // Obtener algunos ejemplos
+            $sampleWishlist = Wishlist::with(['user', 'product'])
+                ->take(5)
+                ->get()
+                ->map(function($item) {
+                    return [
+                        'id' => $item->id,
+                        'user_id' => $item->user_id,
+                        'user_name' => $item->user->name ?? 'N/A',
+                        'product_id' => $item->product_id,
+                        'product_name' => $item->product->name ?? 'N/A',
+                        'notes' => $item->notes,
+                        'created_at' => $item->created_at,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'total_wishlist_items' => $totalWishlistItems,
+                    'users_with_wishlist' => $usersWithWishlist,
+                    'products_in_wishlist' => $productsInWishlist,
+                    'sample_wishlist' => $sampleWishlist,
+                ],
+                'message' => 'Debug de wishlist completado'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en debug: ' . $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ], 500);
         }
     }

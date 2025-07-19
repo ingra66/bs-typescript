@@ -187,6 +187,21 @@ class UserService {
       throw new Error(error.response?.data?.message || 'Error al obtener estadísticas generales');
     }
   }
+
+  /**
+   * Obtener la wishlist de un usuario específico
+   */
+  async getUserWishlist(userId: number): Promise<{ success: boolean; data: any[]; message: string }> {
+    try {
+      console.log('🔍 Llamando a getUserWishlist para usuario:', userId);
+      const response = await api.get(`/admin/users/${userId}/wishlist`);
+      console.log('✅ Respuesta de getUserWishlist:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error al obtener wishlist del usuario:', error);
+      throw error;
+    }
+  }
 }
 
 export default new UserService(); 

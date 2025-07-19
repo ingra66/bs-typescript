@@ -8,6 +8,8 @@ import { ItemGrid, convertProductsToGridItems, type GridItem } from '../componen
 import { CategoryGrid } from '../components/categories/CategoryGrid';
 import UnifiedProductCard from '../components/products/UnifiedProductCard';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import AlertModal from '../components/ui/AlertModal';
+import AutoCloseAlertModal from '../components/ui/AutoCloseAlertModal';
 
 export const Products: React.FC = () => {
   const { categorySlug } = useParams<{ categorySlug?: string }>();
@@ -22,6 +24,7 @@ export const Products: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'latest' | 'price-asc' | 'price-desc' | 'name'>('latest');
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -160,7 +163,7 @@ export const Products: React.FC = () => {
       stock: product.stock
     };
     addItem(item);
-    alert('Producto agregado al carrito');
+    setShowAlert(true);
   };
 
   if (loading) {
@@ -298,6 +301,13 @@ export const Products: React.FC = () => {
           </div>
         )}
       </div>
+
+      <AutoCloseAlertModal
+        isOpen={showAlert}
+        title="Producto agregado"
+        message="El producto ha sido agregado al carrito exitosamente"
+        onClose={() => setShowAlert(false)}
+      />
     </div>
   );
 }; 

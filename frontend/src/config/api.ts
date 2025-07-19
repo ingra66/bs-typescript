@@ -4,7 +4,7 @@ const getApiConfig = () => {
   
   if (isDevelopment) {
     return {
-      baseURL: 'http://localhost:8000/api/v1',
+      baseURL: 'http://localhost/bs-typescript/backend/public/api/v1',
       timeout: 10000,
       withCredentials: true
     };

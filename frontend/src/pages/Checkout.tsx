@@ -10,6 +10,7 @@ import PaymentDebug from '../components/debug/PaymentDebug';
 import QuickPaymentTest from '../components/debug/QuickPaymentTest';
 import { Button } from '../components/ui/Button';
 import type { CreateOrderRequest } from '../types/order';
+import AlertModal from '../components/ui/AlertModal';
 
 interface ShippingAddress {
   name: string;
@@ -38,6 +39,12 @@ const Checkout: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Partial<ShippingAddress>>({});
+  const [showPaymentError, setShowPaymentError] = useState(false);
+  const [showDebugAlert1, setShowDebugAlert1] = useState(false);
+  const [showDebugAlert2, setShowDebugAlert2] = useState(false);
+  const [showDebugAlert3, setShowDebugAlert3] = useState(false);
+  const [showDebugAlert4, setShowDebugAlert4] = useState(false);
+  const [debugMessage, setDebugMessage] = useState('');
 
   // Validar formulario
   const validateForm = useMemo((): boolean => {
@@ -83,7 +90,8 @@ const Checkout: React.FC = () => {
   // Manejar error del pago
   const handlePaymentError = (error: string) => {
     console.error('Error en el pago:', error);
-    alert(`Error: ${error}`);
+    setDebugMessage(`Error: ${error}`);
+    setShowPaymentError(true);
   };
 
   const handleInputChange = (field: keyof ShippingAddress, value: string) => {
@@ -344,7 +352,8 @@ const Checkout: React.FC = () => {
                       });
                       const data = await response.json();
                       console.log('Debug carrito:', data);
-                      alert(`Carrito backend: ${data.data.cart_items_count} items`);
+                      setDebugMessage(`Carrito backend: ${data.data.cart_items_count} items`);
+                      setShowDebugAlert1(true);
                     } catch (error) {
                       console.error('Error debug:', error);
                     }
@@ -354,25 +363,26 @@ const Checkout: React.FC = () => {
                   text="Debug Carrito Backend"
                 />
                 
-              <Button
+                <Button
                   onClick={() => {
                     const { items } = useCartStore.getState();
                     console.log('Carrito frontend:', items);
-                    alert(`Carrito frontend: ${items.length} items`);
+                    setDebugMessage(`Carrito frontend: ${items.length} items`);
+                    setShowDebugAlert2(true);
                   }}
                   variant="secondary"
                   fullWidth
                   text="Debug Carrito Frontend"
-              />
+                />
                 
                 <Button
                   onClick={async () => {
                     try {
                       await useCartStore.getState().syncWithBackend();
-                      alert('Sincronización forzada completada');
+                      setShowDebugAlert3(true);
                     } catch (error) {
                       console.error('Error sincronizando:', error);
-                      alert('Error en sincronización');
+                      setShowDebugAlert4(true);
                     }
                   }}
                   variant="secondary"
@@ -416,6 +426,51 @@ const Checkout: React.FC = () => {
           <AuthDebug />
         </div>
       </div>
+      
+      <AlertModal
+        isOpen={showPaymentError}
+        title="Error de pago"
+        message={debugMessage}
+        confirmText="Aceptar"
+        onConfirm={() => setShowPaymentError(false)}
+        onCancel={() => setShowPaymentError(false)}
+      />
+      
+      <AlertModal
+        isOpen={showDebugAlert1}
+        title="Debug Backend"
+        message={debugMessage}
+        confirmText="Aceptar"
+        onConfirm={() => setShowDebugAlert1(false)}
+        onCancel={() => setShowDebugAlert1(false)}
+      />
+      
+      <AlertModal
+        isOpen={showDebugAlert2}
+        title="Debug Frontend"
+        message={debugMessage}
+        confirmText="Aceptar"
+        onConfirm={() => setShowDebugAlert2(false)}
+        onCancel={() => setShowDebugAlert2(false)}
+      />
+      
+      <AlertModal
+        isOpen={showDebugAlert3}
+        title="Sincronización completada"
+        message="Sincronización forzada completada"
+        confirmText="Aceptar"
+        onConfirm={() => setShowDebugAlert3(false)}
+        onCancel={() => setShowDebugAlert3(false)}
+      />
+      
+      <AlertModal
+        isOpen={showDebugAlert4}
+        title="Error de sincronización"
+        message="Error en sincronización"
+        confirmText="Aceptar"
+        onConfirm={() => setShowDebugAlert4(false)}
+        onCancel={() => setShowDebugAlert4(false)}
+      />
     </div>
   );
 };

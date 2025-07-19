@@ -7,6 +7,8 @@ import type { Product, ProductFilters } from '../../services/productService';
 import type { Category } from '../../services/productService';
 import UnifiedProductCard from './UnifiedProductCard';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import AlertModal from '../ui/AlertModal';
+import AutoCloseAlertModal from '../ui/AutoCloseAlertModal';
 
 export interface ProductFilterCarouselProduct {
   id: number;
@@ -28,6 +30,7 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [filteredProducts, setFilteredProducts] = useState<ProductFilterCarouselProduct[]>([]);
+  const [showAlert, setShowAlert] = useState(false);
   const itemsPerView = 4;
   const maxProducts = 12;
 
@@ -113,7 +116,7 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
       stock: 99
     };
     addItem(item);
-    alert('Producto agregado al carrito');
+    setShowAlert(true);
   };
 
   const handleCategoryClick = (categoryId: number | null) => {
@@ -247,6 +250,12 @@ export const ProductFilterCarousel: React.FC<ProductFilterCarouselProps> = ({ ti
           </div>
         </div>
       </div>
+      <AutoCloseAlertModal
+        isOpen={showAlert}
+        title="Producto agregado"
+        message="El producto ha sido agregado al carrito exitosamente"
+        onClose={() => setShowAlert(false)}
+      />
     </section>
   );
 }; 

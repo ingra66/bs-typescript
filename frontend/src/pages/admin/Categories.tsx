@@ -42,6 +42,7 @@ import categoryService from '../../services/categoryService';
 import type { Category, CategoryStatistics } from '../../services/categoryService';
 import CategoryForm from '../../components/admin/CategoryForm';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import AlertModal from '../../components/ui/AlertModal';
 
 export default function Categories() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -67,6 +68,9 @@ export default function Categories() {
   
   // Estados de acciones
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [showStatusErrorAlert, setShowStatusErrorAlert] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Cargar datos
   const loadData = async () => {
@@ -151,7 +155,8 @@ export default function Categories() {
     } catch (err: any) {
       console.error('Error deleting category:', err);
       const errorMessage = err.response?.data?.message || 'Error al eliminar la categoría';
-      alert(errorMessage);
+      setErrorMessage(errorMessage);
+      setShowErrorAlert(true);
     } finally {
       setActionLoading(null);
     }
@@ -165,7 +170,7 @@ export default function Categories() {
       loadData();
     } catch (err: any) {
       console.error('Error toggling category status:', err);
-      alert('Error al cambiar el estado de la categoría');
+      setShowStatusErrorAlert(true);
     } finally {
       setActionLoading(null);
     }
@@ -462,6 +467,24 @@ export default function Categories() {
           {error}
         </Alert>
       )}
+
+      <AlertModal
+        isOpen={showErrorAlert}
+        title="Error"
+        message={errorMessage}
+        confirmText="Aceptar"
+        onConfirm={() => setShowErrorAlert(false)}
+        onCancel={() => setShowErrorAlert(false)}
+      />
+      
+      <AlertModal
+        isOpen={showStatusErrorAlert}
+        title="Error"
+        message="Error al cambiar el estado de la categoría"
+        confirmText="Aceptar"
+        onConfirm={() => setShowStatusErrorAlert(false)}
+        onCancel={() => setShowStatusErrorAlert(false)}
+      />
     </Box>
   );
 } 

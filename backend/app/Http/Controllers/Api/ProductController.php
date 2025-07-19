@@ -182,8 +182,10 @@ class ProductController extends Controller
     /**
      * Update the specified product
      */
-    public function update(Request $request, Product $product): JsonResponse
+    public function update(Request $request, $id): JsonResponse
     {
+        $product = Product::findOrFail($id);
+
         $validated = $request->validate([
             'category_id' => 'sometimes|required|exists:categories,id',
             'name' => 'sometimes|required|string|max:255',
@@ -257,8 +259,10 @@ class ProductController extends Controller
     /**
      * Remove the specified product
      */
-    public function destroy(Product $product): JsonResponse
+    public function destroy($id): JsonResponse
     {
+        $product = Product::findOrFail($id);
+
         // Eliminar imágenes si existen
         if ($product->images) {
             foreach ($product->images as $image) {

@@ -85,7 +85,7 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
 
   if (loading) {
     return (
-      <div className={`bg-gray-800 rounded-lg p-6 ${className} flex items-center justify-center`}>
+      <div className={`bg-black border border-red-500 rounded-lg p-6 ${className} flex items-center justify-center`}>
         <LoadingSpinner message="Cargando órdenes..." size="md" />
       </div>
     );
@@ -93,14 +93,14 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
 
   if (error) {
     return (
-      <div className={`bg-gray-800 rounded-lg p-6 ${className}`}>
+      <div className={`bg-black border border-red-500 rounded-lg p-6 ${className}`}>
         <div className="text-center">
           <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-white text-lg font-medium mb-2">Error al cargar órdenes</h3>
           <p className="text-gray-400 mb-4">{error}</p>
           <button
             onClick={loadOrders}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             Reintentar
           </button>
@@ -110,7 +110,7 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
   }
 
   return (
-    <div className={`bg-gray-800 rounded-lg ${className}`}>
+    <div className={`bg-black border border-red-500 rounded-lg ${className}`}>
       {/* Header */}
       <div className="p-6 border-b border-gray-700">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -124,7 +124,7 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
             <select
               value={filters.status}
               onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="bg-black text-white px-3 py-2 rounded-lg border border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="">Todos los estados</option>
               <option value="pending">Pendiente</option>
@@ -137,7 +137,7 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
             <select
               value={filters.payment_status}
               onChange={(e) => handleFilterChange('payment_status', e.target.value)}
-              className="bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="bg-black text-white px-3 py-2 rounded-lg border border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="">Todos los pagos</option>
               <option value="pending">Pendiente</option>
@@ -149,7 +149,7 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
             <select
               value={filters.order_direction}
               onChange={(e) => handleFilterChange('order_direction', e.target.value)}
-              className="bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="bg-black text-white px-3 py-2 rounded-lg border border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
             >
               <option value="desc">Más recientes</option>
               <option value="asc">Más antiguos</option>
@@ -167,7 +167,7 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
             <p className="text-gray-400 mb-4">Cuando hagas una compra, aparecerá aquí</p>
             <button
               onClick={() => navigate('/')}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors"
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors"
             >
               Comenzar a comprar
             </button>
@@ -177,7 +177,7 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
             {orders.map((order) => (
               <div
                 key={order.id}
-                className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors cursor-pointer"
+                className="bg-black border border-red-500 rounded-lg p-4 hover:bg-gray-900 transition-colors cursor-pointer"
                 onClick={() => navigate(`/orders/${order.id}`)}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -239,7 +239,7 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
               {pagination.current_page > 1 && (
                 <button
                   onClick={() => handlePageChange(pagination.current_page - 1)}
-                  className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                  className="px-3 py-2 bg-black border border-red-500 text-white rounded-lg hover:bg-gray-900 transition-colors"
                 >
                   Anterior
                 </button>
@@ -251,8 +251,8 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
                   onClick={() => handlePageChange(page)}
                   className={`px-3 py-2 rounded-lg transition-colors ${
                     page === pagination.current_page
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-700 text-white hover:bg-gray-600'
+                      ? 'bg-red-600 text-white'
+                      : 'bg-black border border-red-500 text-white hover:bg-gray-900'
                   }`}
                 >
                   {page}
@@ -262,7 +262,7 @@ const OrderList: React.FC<OrderListProps> = ({ className = '' }) => {
               {pagination.current_page < pagination.last_page && (
                 <button
                   onClick={() => handlePageChange(pagination.current_page + 1)}
-                  className="px-3 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                  className="px-3 py-2 bg-black border border-red-500 text-white rounded-lg hover:bg-gray-900 transition-colors"
                 >
                   Siguiente
                 </button>

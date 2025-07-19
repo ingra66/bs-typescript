@@ -2,24 +2,30 @@ import React, { useState } from 'react';
 import { motion } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../stores/cartStore';
+import { useWishlistStore } from '../../stores/wishlistStore';
 import type { Product } from '../../services/productService';
 import AutoCloseAlertModal from '../ui/AutoCloseAlertModal';
-import WishlistButton from '../ui/WishlistButton';
+import AlertModal from '../ui/AlertModal';
 
-interface UnifiedProductCardProps {
+interface WishlistProductCardProps {
   product: Product;
   className?: string;
   variant?: 'default' | 'compact';
+  onRemove?: () => void;
 }
 
-const UnifiedProductCard: React.FC<UnifiedProductCardProps> = ({ 
+const WishlistProductCard: React.FC<WishlistProductCardProps> = ({ 
   product, 
   className = '',
-  variant = 'default'
+  variant = 'default',
+  onRemove
 }) => {
   const navigate = useNavigate();
   const { addItem } = useCartStore();
-  const [showAlert, setShowAlert] = useState(false);
+  const { removeFromWishlist } = useWishlistStore();
+  const [showCartAlert, setShowCartAlert] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   // Función para obtener la URL de la imagen
   const getImageUrl = (imagePath: string | undefined) => {
@@ -46,7 +52,7 @@ const UnifiedProductCard: React.FC<UnifiedProductCardProps> = ({
       stock: product.stock
     };
     addItem(item);
-    setShowAlert(true);
+    setShowCartAlert(true);
   };
 
   const handleProductClick = () => {
@@ -56,6 +62,33 @@ const UnifiedProductCard: React.FC<UnifiedProductCardProps> = ({
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigate(`/product/${product.slug}`);
+  };
+
+  const handleRemoveClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowRemoveModal(true);
+  };
+
+  const handleConfirmRemove = async () => {
+    setIsRemoving(true);
+    try {
+      await removeFromWishlist(product.id);
+      setShowRemoveModal(false);
+      // Callback para actualizar la vista
+      if (onRemove) {
+        onRemove();
+      }
+    } catch (error) {
+      console.error('Error removing from wishlist:', error);
+      alert('Error al eliminar el producto de favoritos');
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
+  const handleCancelRemove = () => {
+    setShowRemoveModal(false);
   };
 
   // Configuración según variante
@@ -112,13 +145,65 @@ const UnifiedProductCard: React.FC<UnifiedProductCardProps> = ({
             }}
           />
           
-          {/* Botón de wishlist */}
+          {/* Botón de eliminar de wishlist */}
           <div className="absolute top-2 right-2 z-10">
-            <WishlistButton
-              productId={product.id}
-              productName={product.name}
-              size="sm"
-            />
+            <button
+              onClick={handleRemoveClick}
+              disabled={isRemoving}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                border: 'none',
+                backgroundColor: '#EF4444',
+                color: '#FFFFFF',
+                cursor: isRemoving ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
+                opacity: isRemoving ? 0.5 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!isRemoving) {
+                  e.currentTarget.style.backgroundColor = '#DC2626';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isRemoving) {
+                  e.currentTarget.style.backgroundColor = '#EF4444';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }
+              }}
+              aria-label="Eliminar de favoritos"
+              title="Eliminar de favoritos"
+            >
+              {isRemoving ? (
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  animation: 'spin 1s linear infinite',
+                  border: '2px solid currentColor',
+                  borderTopColor: 'transparent',
+                  borderRadius: '50%',
+                }} />
+              ) : (
+                <svg
+                  style={{ width: '16px', height: '16px' }}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              )}
+            </button>
           </div>
           
           {/* Overlay con lupa que aparece en hover */}
@@ -169,14 +254,26 @@ const UnifiedProductCard: React.FC<UnifiedProductCardProps> = ({
         </div>
       </motion.div>
       
+      {/* Modal de confirmación para eliminar */}
+      <AlertModal
+        isOpen={showRemoveModal}
+        title="Eliminar de favoritos"
+        message={`¿Estás seguro que querés eliminar "${product.name}" de tus favoritos?`}
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        onConfirm={handleConfirmRemove}
+        onCancel={handleCancelRemove}
+      />
+      
+      {/* Modal de confirmación para agregar al carrito */}
       <AutoCloseAlertModal
-        isOpen={showAlert}
+        isOpen={showCartAlert}
         title="Producto agregado"
         message="El producto ha sido agregado al carrito exitosamente"
-        onClose={() => setShowAlert(false)}
+        onClose={() => setShowCartAlert(false)}
       />
     </>
   );
 };
 
-export default UnifiedProductCard; 
+export default WishlistProductCard; 

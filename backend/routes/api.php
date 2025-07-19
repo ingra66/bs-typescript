@@ -719,17 +719,12 @@ Route::prefix('v1')->group(function () {
             Route::post('/{review}/not-helpful', [ReviewController::class, 'markNotHelpful']);
         });
         
-        // Lista de deseos
+        // Wishlist (favoritos)
         Route::prefix('wishlist')->group(function () {
             Route::get('/', [WishlistController::class, 'index']);
-            Route::post('/add', [WishlistController::class, 'add']);
-            Route::put('/{wishlist}', [WishlistController::class, 'update']);
-            Route::delete('/{wishlist}', [WishlistController::class, 'remove']);
-            Route::get('/summary', [WishlistController::class, 'summary']);
-            Route::get('/public', [WishlistController::class, 'publicWishlists']);
-            Route::post('/check', [WishlistController::class, 'check']);
-            Route::get('/on-sale', [WishlistController::class, 'onSale']);
-            Route::get('/back-in-stock', [WishlistController::class, 'backInStock']);
+            Route::post('/', [WishlistController::class, 'store']);
+            Route::delete('/{product}', [WishlistController::class, 'destroy']);
+            Route::get('/check/{product}', [WishlistController::class, 'check']);
         });
         
         // Notificaciones
@@ -794,8 +789,8 @@ Route::prefix('v1')->group(function () {
             // Productos (admin)
             Route::prefix('admin/products')->group(function () {
                 Route::post('/', [ProductController::class, 'store']);
-                Route::put('/{product}', [ProductController::class, 'update']);
-                Route::delete('/{product}', [ProductController::class, 'destroy']);
+                Route::put('/{id}', [ProductController::class, 'update']);
+                Route::delete('/{id}', [ProductController::class, 'destroy']);
             });
             
             // Cupones (admin)
@@ -830,6 +825,8 @@ Route::prefix('v1')->group(function () {
                 Route::put('/{user}', [AdminUserController::class, 'update']);
                 Route::delete('/{user}', [AdminUserController::class, 'destroy']);
                 Route::get('/{user}/statistics', [AdminUserController::class, 'getUserStatistics']);
+                Route::get('/{user}/wishlist', [AdminUserController::class, 'getUserWishlist']);
+                Route::get('/debug/wishlist-test', [AdminUserController::class, 'debugWishlistTest']);
             });
         });
     });
