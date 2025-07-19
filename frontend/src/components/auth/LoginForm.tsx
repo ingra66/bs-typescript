@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { Eye, EyeOff, Mail, Lock, Shield, User, Crown } from 'lucide-react';
+import { Button } from '../ui/Button';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface LoginFormData {
@@ -222,14 +223,16 @@ export const LoginForm: React.FC = () => {
                   <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-light">
                     <Lock size={16} />
                   </div>
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     className="position-absolute top-50 end-0 translate-middle-y me-2 border-0 bg-transparent text-light"
                     onClick={() => setShowPassword(!showPassword)}
                     style={{ fontSize: '1rem' }}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                  </Button>
                 </div>
                 {errors.password && (
                   <div className="invalid-feedback d-block" style={{ fontSize: '0.85rem' }}>{errors.password}</div>
@@ -258,50 +261,44 @@ export const LoginForm: React.FC = () => {
               </div>
 
               {/* Sign In Button */}
-              <button
+              <Button
                 type="submit"
-                className="btn btn-lg w-100 text-white fw-medium mb-2"
+                variant="primary"
+                fullWidth
                 disabled={isLoading}
-                style={{ ...loginStyles.button, backgroundColor: "#DC2626", border: "none" }}
-              >
-                {isLoading ? (
-                  <div className="d-flex align-items-center justify-content-center">
-                    <div className="spinner-border spinner-border-sm me-2" role="status" style={{ width: 16, height: 16 }}>
-                      <span className="visually-hidden">Cargando...</span>
-                    </div>
-                    Iniciando sesión...
-                  </div>
-                ) : (
-                  'Iniciar Sesión'
-                )}
-              </button>
+                isLoading={isLoading}
+                text={isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                style={{ ...loginStyles.button, border: "none" }}
+              />
 
               {/* Quick Login Buttons */}
               <div className="mb-2">
                 <div className="row g-2">
                   <div className="col-6">
-                    <button
+                    <Button
                       type="button"
-                      className="btn btn-outline-light w-100 fw-medium"
+                      variant="outline"
+                      size="sm"
+                      fullWidth
                       onClick={() => quickLogin('admin@beltspot.com', 'password')}
                       disabled={isLoading}
+                      iconBefore={<Crown size={14} />}
+                      text="Admin"
                       style={{ borderRadius: "6px", padding: "7px", border: "1px solid #374151", fontSize: "0.85rem" }}
-                    >
-                      <Crown size={14} className="me-1" />
-                      Admin
-                    </button>
+                    />
                   </div>
                   <div className="col-6">
-                    <button
+                    <Button
                       type="button"
-                      className="btn btn-outline-light w-100 fw-medium"
+                      variant="outline"
+                      size="sm"
+                      fullWidth
                       onClick={() => quickLogin('user@beltspot.com', 'password')}
                       disabled={isLoading}
+                      iconBefore={<User size={14} />}
+                      text="Usuario"
                       style={{ borderRadius: "6px", padding: "7px", border: "1px solid #374151", fontSize: "0.85rem" }}
-                    >
-                      <User size={14} className="me-1" />
-                      Usuario
-                    </button>
+                    />
                   </div>
                 </div>
               </div>

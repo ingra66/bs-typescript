@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../stores/cartStore';
 import { useAuthStore } from '../stores/authStore';
 import { Trash2, ArrowLeft } from 'lucide-react';
+import { Button } from '../components/ui/Button';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
@@ -98,18 +99,12 @@ const CartPage: React.FC = () => {
                   Carrito Vacío
                 </h1>
                 <p className="text-muted mb-4">No tienes productos en tu carrito.</p>
-                <button
+                <Button
                   onClick={handleContinueShopping}
-                  className="btn btn-lg"
-                  style={{ 
-                    backgroundColor: "#DC2626", 
-                    border: "1px solid #DC2626",
-                    borderRadius: "6px",
-                    padding: "10px"
-                  }}
-                >
-                  Continuar Comprando
-                </button>
+                  variant="primary"
+                  size="lg"
+                  text="Continuar Comprando"
+                />
               </div>
             </div>
           </div>
@@ -125,23 +120,22 @@ const CartPage: React.FC = () => {
           <div className="col-12">
             <div className="d-flex justify-content-between align-items-center mb-5">
               <div className="d-flex align-items-center">
-                <button
+                <Button
                   onClick={() => navigate(-1)}
-                  className="btn btn-link text-white me-3 p-0"
-                >
-                  <ArrowLeft size={24} />
-                </button>
+                  variant="ghost"
+                  iconBefore={<ArrowLeft size={24} />}
+                  className="me-3 p-0"
+                />
                 <h1 className="text-white mb-0" style={{ fontSize: "3rem", fontWeight: "bold" }}>
                   Carrito
                 </h1>
               </div>
-              <button
+              <Button
                 onClick={handleClearCart}
-                className="btn btn-outline-danger"
-              >
-                <Trash2 size={16} className="me-2" />
-                Vaciar Carrito
-              </button>
+                variant="outline"
+                iconBefore={<Trash2 size={16} />}
+                text="Vaciar Carrito"
+              />
             </div>
           </div>
         </div>
@@ -196,13 +190,15 @@ const CartPage: React.FC = () => {
                             </td>
                             <td className="align-middle text-white" style={{ backgroundColor: "#000000" }}>${((typeof item.price === 'string' ? parseFloat(item.price) : item.price) * item.quantity).toFixed(2)}</td>
                             <td className="align-middle" style={{ backgroundColor: "#000000" }}>
-                              <button
-                                className="btn btn-link text-danger p-0"
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => handleRemoveItem(item.id)}
+                                className="text-danger p-0"
                                 style={{ fontSize: "1.2rem" }}
                               >
                                 ×
-                              </button>
+                              </Button>
                             </td>
                           </tr>
                         ))}
@@ -232,18 +228,12 @@ const CartPage: React.FC = () => {
                     />
                   </div>
                   <div className="col-md-4 mt-2 mt-md-0">
-                    <button
-                      className="btn btn-danger w-100"
+                    <Button
+                      variant="primary"
+                      fullWidth
                       onClick={applyCoupon}
-                      style={{ 
-                        backgroundColor: "#DC2626", 
-                        border: "1px solid #DC2626",
-                        borderRadius: "6px",
-                        padding: "8px 12px"
-                      }}
-                    >
-                      Aplicar descuento
-                    </button>
+                      text="Aplicar descuento"
+                    />
                   </div>
                 </div>
               </div>
@@ -330,28 +320,19 @@ const CartPage: React.FC = () => {
 
                 {/* Checkout Buttons */}
                 <div className="d-grid gap-2">
-                  <button 
-                    className="btn btn-danger btn-lg"
+                  <Button 
+                    variant="primary"
+                    size="lg"
+                    fullWidth
                     onClick={handleCheckout}
-                    style={{ 
-                      backgroundColor: "#DC2626", 
-                      border: "1px solid #DC2626",
-                      borderRadius: "6px",
-                      padding: "10px"
-                    }}
-                  >
-                    {isAuthenticated ? 'Proceder al Pago' : 'Iniciar Sesión para Pagar'}
-                  </button>
-                  <button
+                    text={isAuthenticated ? 'Proceder al Pago' : 'Iniciar Sesión para Pagar'}
+                  />
+                  <Button
                     onClick={handleContinueShopping}
-                    className="btn btn-outline-light"
-                    style={{
-                      borderRadius: "6px",
-                      padding: "10px"
-                    }}
-                  >
-                    Continuar Comprando
-                  </button>
+                    variant="outline"
+                    fullWidth
+                    text="Continuar Comprando"
+                  />
                 </div>
               </div>
             </div>

@@ -4,6 +4,8 @@ import { ShoppingCart, Star, ArrowLeft } from "lucide-react";
 import type { Product, ProductVariant } from "../services/productService";
 import { useCartStore } from "../stores/cartStore";
 import { Header } from "../components/layout/Header";
+import { Button } from "../components/ui/Button";
+import { ProductCarousel, type ProductCarouselProduct } from "../components/products/ProductCarousel";
 
 export const ProductPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -15,6 +17,7 @@ export const ProductPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [relatedProducts, setRelatedProducts] = useState<ProductCarouselProduct[]>([]);
   const { addItem } = useCartStore();
 
   const getImageUrl = (imagePath: string | undefined) => {
@@ -60,6 +63,32 @@ export const ProductPage: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Cargar productos relacionados
+  useEffect(() => {
+    if (!product?.category?.slug) return;
+    
+    fetch(`http://localhost:8000/api/v1/categories/${product.category.slug}/products`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          // Filtrar para excluir el producto actual
+          const filtered = data.data
+            .filter((p: any) => p.id !== product.id)
+            .map((p: any) => ({
+              id: p.id,
+              name: p.name,
+              price: p.price,
+              image: getImageUrl(p.main_image || p.images?.[0]),
+              brand: p.brand || ''
+            }));
+          setRelatedProducts(filtered);
+        }
+      })
+      .catch(error => {
+        console.error('Error cargando productos relacionados:', error);
+      });
+  }, [product]);
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -122,13 +151,12 @@ export const ProductPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 py-6 w-full">
           {/* Botón de volver */}
           <div className="mb-6">
-            <button
+            <Button
               onClick={() => navigate('/products')}
-              className="flex items-center space-x-2 text-white hover:text-brand-red transition-colors"
-            >
-              <ArrowLeft size={20} />
-              <span>Volver a productos</span>
-            </button>
+              variant="ghost"
+              iconBefore={<ArrowLeft size={20} />}
+              text="Volver a productos"
+            />
           </div>
 
           <div className="flex flex-col lg:flex-row items-start justify-center gap-6 lg:gap-8">
@@ -150,13 +178,15 @@ export const ProductPage: React.FC = () => {
               {productImages.length > 1 && (
                 <div className="flex space-x-2 justify-center">
                   {productImages.map((image, index) => (
-                    <button
+                    <Button
                       key={index}
                       onClick={() => setSelectedImage(index)}
-                      className={`w-12 h-12 md:w-14 md:h-14 border-2 rounded-lg overflow-hidden ${selectedImage === index ? 'border-brand-red' : 'border-gray-300'}`}
+                      variant="outline"
+                      size="sm"
+                      className={`w-12 h-12 md:w-14 md:h-14 p-0 overflow-hidden ${selectedImage === index ? 'border-brand-red' : 'border-gray-300'}`}
                     >
                       <img src={image} alt={`${product.name} vista ${index + 1}`} className="w-full h-full object-cover" />
-                    </button>
+                    </Button>
                   ))}
                 </div>
               )}
@@ -190,14 +220,16 @@ export const ProductPage: React.FC = () => {
                   <h3 className="text-base font-semibold text-white mb-2">Variantes</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {product.variants.filter(v => v.is_active).map(variant => (
-                      <button
+                      <Button
                         key={variant.id}
                         onClick={() => setSelectedVariant(variant)}
-                        className={`py-2 px-3 border-2 rounded text-sm font-medium transition-colors ${selectedVariant?.id === variant.id ? 'border-brand-red bg-brand-red text-white' : 'border-gray-600 text-white hover:border-brand-red bg-gray-800'}`}
+                        variant={selectedVariant?.id === variant.id ? "primary" : "secondary"}
+                        size="sm"
+                        className="text-xs"
                       >
                         {variant.name}: {variant.value}
                         {variant.price_adjustment > 0 && <span className="block text-xs">+${Number(variant.price_adjustment).toFixed(2)}</span>}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -205,7 +237,7 @@ export const ProductPage: React.FC = () => {
 
               <div className="flex flex-col space-y-3">
                 <div className="flex items-center border-2 border-gray-600 rounded px-2 w-32 bg-gray-800">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-2 py-1 text-gray-400 hover:text-white">-</button>
+                  <Button onClick={() => setQuantity(Math.max(1, quantity - 1))} variant="ghost" size="sm" className="px-2 py-1 text-gray-400 hover:text-white">-</Button>
                   <input
                     type="number"
                     min={1}
@@ -214,21 +246,31 @@ export const ProductPage: React.FC = () => {
                     onChange={(e) => setQuantity(Math.max(1, Math.min(selectedVariant ? selectedVariant.stock : product.stock, Number(e.target.value))))}
                     className="w-12 text-center border-none focus:outline-none bg-transparent text-white"
                   />
-                  <button onClick={() => setQuantity(Math.min(selectedVariant ? selectedVariant.stock : product.stock, quantity + 1))} className="px-2 py-1 text-gray-400 hover:text-white">+</button>
+                  <Button onClick={() => setQuantity(Math.min(selectedVariant ? selectedVariant.stock : product.stock, quantity + 1))} variant="ghost" size="sm" className="px-2 py-1 text-gray-400 hover:text-white">+</Button>
                 </div>
 
-                <button
+                <Button
                   onClick={handleAddToCart}
-                  disabled={adding || (selectedVariant ? selectedVariant.stock === 0 : product.stock === 0)}
-                  className="w-full bg-brand-red hover:bg-red-700 text-white py-2 px-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  <ShoppingCart size={18} />
-                  <span>{selectedVariant ? selectedVariant.stock === 0 : product.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}</span>
-                </button>
+                  disabled={selectedVariant ? selectedVariant.stock === 0 : product.stock === 0}
+                  isLoading={adding}
+                  fullWidth
+                  iconBefore={<ShoppingCart size={18} />}
+                  text={(selectedVariant ? selectedVariant.stock === 0 : product.stock === 0) ? 'Sin stock' : 'Agregar al carrito'}
+                />
               </div>
             </div>
           </div>
         </div>
+
+        {/* Sección de productos relacionados */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-16">
+            <ProductCarousel 
+              products={relatedProducts} 
+              title="También podría interesarte" 
+            />
+          </div>
+        )}
       </div>
     </div>
   );

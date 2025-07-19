@@ -8,6 +8,7 @@ import PaymentProcessor from '../components/payment/PaymentProcessor';
 import AuthDebug from '../components/debug/AuthDebug';
 import PaymentDebug from '../components/debug/PaymentDebug';
 import QuickPaymentTest from '../components/debug/QuickPaymentTest';
+import { Button } from '../components/ui/Button';
 import type { CreateOrderRequest } from '../types/order';
 
 interface ShippingAddress {
@@ -106,12 +107,11 @@ const Checkout: React.FC = () => {
         <div className="text-center">
           <h1 className="text-white text-2xl font-bold mb-4">Carrito vacío</h1>
           <p className="text-gray-400 mb-8">No tienes productos en tu carrito para proceder al checkout.</p>
-          <button
+          <Button
             onClick={() => navigate('/')}
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
-          >
-            Continuar comprando
-          </button>
+            variant="primary"
+            text="Continuar comprando"
+          />
         </div>
       </div>
     );
@@ -122,12 +122,12 @@ const Checkout: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <button
+          <Button
             onClick={() => navigate(-1)}
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-full transition-colors"
-          >
-            <ArrowLeft size={20} />
-          </button>
+            variant="ghost"
+            iconBefore={<ArrowLeft size={20} />}
+            className="p-2 rounded-full"
+          />
           <div>
             <h1 className="text-white text-2xl font-bold">Checkout</h1>
             <p className="text-gray-400">Completa tu información para proceder al pago</p>
@@ -334,7 +334,7 @@ const Checkout: React.FC = () => {
 
               {/* Debug buttons */}
               <div className="space-y-2 mb-4">
-                <button
+                <Button
                   onClick={async () => {
                     try {
                       const response = await fetch('http://localhost:8000/api/v1/debug/cart', {
@@ -349,23 +349,23 @@ const Checkout: React.FC = () => {
                       console.error('Error debug:', error);
                     }
                   }}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg"
-                >
-                  Debug Carrito Backend
-                </button>
+                  variant="secondary"
+                  fullWidth
+                  text="Debug Carrito Backend"
+                />
                 
-              <button
+              <Button
                   onClick={() => {
                     const { items } = useCartStore.getState();
                     console.log('Carrito frontend:', items);
                     alert(`Carrito frontend: ${items.length} items`);
                   }}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg"
-              >
-                  Debug Carrito Frontend
-              </button>
+                  variant="secondary"
+                  fullWidth
+                  text="Debug Carrito Frontend"
+              />
                 
-                <button
+                <Button
                   onClick={async () => {
                     try {
                       await useCartStore.getState().syncWithBackend();
@@ -375,10 +375,10 @@ const Checkout: React.FC = () => {
                       alert('Error en sincronización');
                     }
                   }}
-                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg"
-                >
-                  Forzar Sincronización
-                </button>
+                  variant="secondary"
+                  fullWidth
+                  text="Forzar Sincronización"
+                />
               </div>
 
               {/* Procesador de pago */}
@@ -389,12 +389,12 @@ const Checkout: React.FC = () => {
                   onError={handlePaymentError}
                 />
               ) : (
-                <button
+                <Button
                   disabled
-                  className="w-full bg-gray-600 text-gray-400 py-4 px-6 rounded-lg font-medium cursor-not-allowed"
-                >
-                  Completa todos los campos requeridos
-                </button>
+                  variant="primary"
+                  fullWidth
+                  text="Completa todos los campos requeridos"
+                />
               )}
 
               {/* Información adicional */}

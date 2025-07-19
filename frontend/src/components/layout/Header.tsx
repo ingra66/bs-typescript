@@ -213,50 +213,54 @@ export const Header: React.FC = () => {
                 )}
               </button>
             </DropdownMenu.Trigger>
-            <DropdownMenu.Content className="z-50 min-w-[180px] bg-black border border-gray-700 rounded-lg shadow-lg p-2 mt-1">
+            <DropdownMenu.Content className="z-50 min-w-[50px] max-w-[250px] bg-black border border-gray-700 rounded-lg shadow-lg p-1 mt-1">
               {isAuthenticated ? (
                 <>
-                  <div className="px-3 py-2 border-b border-gray-700">
+                  <div className="px-2 py-2 border-b border-gray-700">
                     <p className="text-sm text-gray-100 font-semibold mb-1">Hola, {user?.name}</p>
                     <p className="text-xs text-gray-400">{user?.email}</p>
                   </div>
                   <DropdownMenu.Item asChild>
                     <Button
                       onClick={() => handleUserAction('profile')}
-                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
-                    >
-                      <User size={14} />
-                      Mi Perfil
-                    </Button>
+                      variant="ghost"
+                      size="sm"
+                      iconBefore={<User size={14} />}
+                      text="Mi Perfil"
+                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-2 py-1.5 rounded-md transition-all duration-200 text-sm"
+                    />
                   </DropdownMenu.Item>
                   <DropdownMenu.Item asChild>
                     <Button
                       onClick={() => navigate('/orders')}
-                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
-                    >
-                      <ShoppingCart size={14} />
-                      Mis Pedidos
-                    </Button>
+                      variant="ghost"
+                      size="sm"
+                      iconBefore={<ShoppingCart size={14} />}
+                      text="Mis Pedidos"
+                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-2 py-1.5 rounded-md transition-all duration-200 text-sm"
+                    />
                   </DropdownMenu.Item>
                   {user?.is_admin && (
                     <DropdownMenu.Item asChild>
                       <Button
                         onClick={() => navigate('/admin')}
-                        className="w-full text-left bg-transparent hover:bg-red-900 text-red-400 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
-                      >
-                        <Settings size={14} />
-                        Panel de Administración
-                      </Button>
+                        variant="ghost"
+                        size="sm"
+                        iconBefore={<Settings size={14} />}
+                        text="Panel de Administración"
+                        className="w-full text-left bg-transparent hover:bg-red-900 text-red-400 px-2 py-1.5 rounded-md transition-all duration-200 text-sm"
+                      />
                     </DropdownMenu.Item>
                   )}
                   <DropdownMenu.Item asChild>
                     <Button
                       onClick={handleLogout}
-                      className="w-full text-left bg-transparent hover:bg-red-900 text-red-400 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
-                    >
-                      <LogOut size={14} />
-                      Cerrar sesión
-                    </Button>
+                      variant="ghost"
+                      size="sm"
+                      iconBefore={<LogOut size={14} />}
+                      text="Cerrar sesión"
+                      className="w-full text-left bg-transparent hover:bg-red-900 text-red-400 px-2 py-1.5 rounded-md transition-all duration-200 text-sm"
+                    />
                   </DropdownMenu.Item>
                 </>
               ) : (
@@ -264,20 +268,22 @@ export const Header: React.FC = () => {
                   <DropdownMenu.Item asChild>
                     <Button
                       onClick={() => handleUserAction('login')}
-                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
-                    >
-                      <UserCheck size={14} />
-                      Iniciar sesión
-                    </Button>
+                      variant="ghost"
+                      size="sm"
+                      iconBefore={<UserCheck size={14} />}
+                      text="Iniciar sesión"
+                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-2 py-1.5 rounded-md transition-all duration-200 text-sm"
+                    />
                   </DropdownMenu.Item>
                   <DropdownMenu.Item asChild>
                     <Button
                       onClick={() => navigate('/register')}
-                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-2 text-sm"
-                    >
-                      <User size={14} />
-                      Registrarse
-                    </Button>
+                      variant="ghost"
+                      size="sm"
+                      iconBefore={<User size={14} />}
+                      text="Registrarse"
+                      className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 px-2 py-1.5 rounded-md transition-all duration-200 text-sm"
+                    />
                   </DropdownMenu.Item>
                 </>
               )}
@@ -385,31 +391,34 @@ export const Header: React.FC = () => {
                             handleUserAction('profile');
                             toggleMobileMenu();
                           }}
-                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200 flex items-center gap-2"
-                        >
-                          <User size={16} />
-                          Mi Perfil
-                        </Button>
+                          variant="ghost"
+                          size="sm"
+                          iconBefore={<User size={16} />}
+                          text="Mi Perfil"
+                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200"
+                        />
                         <Button
                           onClick={() => {
                             navigate('/orders');
                             toggleMobileMenu();
                           }}
-                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200 flex items-center gap-2"
-                        >
-                          <ShoppingCart size={16} />
-                          Mis Pedidos
-                        </Button>
+                          variant="ghost"
+                          size="sm"
+                          iconBefore={<ShoppingCart size={16} />}
+                          text="Mis Pedidos"
+                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200"
+                        />
                         <Button
                           onClick={() => {
                             handleLogout();
                             toggleMobileMenu();
                           }}
-                          className="w-full text-left bg-transparent hover:bg-red-900 text-red-400 py-2 px-3 rounded-md transition-all duration-200 flex items-center gap-2"
-                        >
-                          <LogOut size={16} />
-                          Cerrar sesión
-                        </Button>
+                          variant="ghost"
+                          size="sm"
+                          iconBefore={<LogOut size={16} />}
+                          text="Cerrar sesión"
+                          className="w-full text-left bg-transparent hover:bg-red-900 text-red-400 py-2 px-3 rounded-md transition-all duration-200"
+                        />
                       </>
                     ) : (
                       <>
@@ -418,21 +427,23 @@ export const Header: React.FC = () => {
                             handleUserAction('login');
                             toggleMobileMenu();
                           }}
-                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200 flex items-center gap-2"
-                        >
-                          <UserCheck size={16} />
-                          Iniciar sesión
-                        </Button>
+                          variant="ghost"
+                          size="sm"
+                          iconBefore={<UserCheck size={16} />}
+                          text="Iniciar sesión"
+                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200"
+                        />
                         <Button
                           onClick={() => {
                             navigate('/register');
                             toggleMobileMenu();
                           }}
-                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200 flex items-center gap-2"
-                        >
-                          <User size={16} />
-                          Registrarse
-                        </Button>
+                          variant="ghost"
+                          size="sm"
+                          iconBefore={<User size={16} />}
+                          text="Registrarse"
+                          className="w-full text-left bg-transparent hover:bg-gray-800 text-gray-200 py-2 px-3 rounded-md transition-all duration-200"
+                        />
                       </>
                     )}
                   </div>

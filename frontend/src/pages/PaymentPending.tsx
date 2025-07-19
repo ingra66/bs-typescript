@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Clock, CheckCircle, XCircle, Home, RefreshCw } from 'lucide-react';
 import paymentService from '../services/paymentService';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { Button } from '../components/ui/Button';
 
 const PaymentPending: React.FC = () => {
   const navigate = useNavigate();
@@ -151,26 +152,23 @@ const PaymentPending: React.FC = () => {
 
           {/* Botones de acción */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
+            <Button
               onClick={handleCheckStatus}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <RefreshCw size={20} />
-              Verificar estado
-            </button>
-            <button
+              variant="primary"
+              iconBefore={<RefreshCw size={20} />}
+              text="Verificar estado"
+            />
+            <Button
               onClick={() => navigate('/profile')}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-medium transition-colors"
-            >
-              Ver mis pedidos
-            </button>
-            <button
+              variant="secondary"
+              text="Ver mis pedidos"
+            />
+            <Button
               onClick={() => navigate('/')}
-              className="bg-gray-600 hover:bg-gray-500 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <Home size={20} />
-              Volver al inicio
-            </button>
+              variant="ghost"
+              iconBefore={<Home size={20} />}
+              text="Volver al inicio"
+            />
           </div>
 
           {/* Información adicional */}

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { XCircle, RefreshCw, Home, CreditCard } from 'lucide-react';
 import paymentService from '../services/paymentService';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { Button } from '../components/ui/Button';
 
 const PaymentFailure: React.FC = () => {
   const navigate = useNavigate();
@@ -118,27 +119,24 @@ const PaymentFailure: React.FC = () => {
 
           {/* Botones de acción */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
+            <Button
               onClick={handleRetryPayment}
-              className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <RefreshCw size={20} />
-              Intentar nuevamente
-            </button>
-            <button
+              variant="primary"
+              iconBefore={<RefreshCw size={20} />}
+              text="Intentar nuevamente"
+            />
+            <Button
               onClick={() => navigate('/cart')}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <CreditCard size={20} />
-              Revisar carrito
-            </button>
-            <button
+              variant="secondary"
+              iconBefore={<CreditCard size={20} />}
+              text="Revisar carrito"
+            />
+            <Button
               onClick={() => navigate('/')}
-              className="bg-gray-600 hover:bg-gray-500 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <Home size={20} />
-              Volver al inicio
-            </button>
+              variant="ghost"
+              iconBefore={<Home size={20} />}
+              text="Volver al inicio"
+            />
           </div>
 
           {/* Información adicional */}

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Home, Package, CreditCard } from 'lucide-react';
 import paymentService from '../services/paymentService';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { Button } from '../components/ui/Button';
 
 const PaymentSuccess: React.FC = () => {
   const navigate = useNavigate();
@@ -116,19 +117,17 @@ const PaymentSuccess: React.FC = () => {
 
           {/* Botones de acción */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
+            <Button
               onClick={() => navigate('/')}
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
-              <Home size={20} />
-              Volver al inicio
-            </button>
-            <button
+              variant="primary"
+              iconBefore={<Home size={20} />}
+              text="Volver al inicio"
+            />
+            <Button
               onClick={() => navigate('/profile')}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-medium transition-colors"
-            >
-              Ver mis pedidos
-            </button>
+              variant="secondary"
+              text="Ver mis pedidos"
+            />
           </div>
 
           {/* Información adicional */}

@@ -4,6 +4,7 @@ import { useAuthStore } from '../../stores/authStore';
 import cartService from '../../services/cartService';
 import type { Product } from '../../services/productService';
 import { useCartStore } from '../../stores/cartStore';
+import { Button } from '../ui/Button';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
 interface AddToCartButtonProps {
@@ -92,45 +93,33 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
 
   return (
     <div className="relative">
-      <button
+      <Button
         onClick={handleAddToCart}
         disabled={isAdding || product.stock === 0}
-        className={`
-          flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200
-          ${sizeClasses[size]}
-          ${isInCart 
-            ? 'bg-red-600 hover:bg-red-700 text-white' 
-            : 'bg-red-600 hover:bg-red-700 text-white'
-          }
-          ${product.stock === 0 ? 'bg-gray-500 cursor-not-allowed' : ''}
-          ${isAdding ? 'opacity-75 cursor-wait' : ''}
-          ${className}
-        `}
-      >
-        {isAdding ? (
-          <>
+        variant="primary"
+        size={size}
+        isLoading={isAdding}
+        className={className}
+        iconBefore={
+          isAdding ? (
             <span className="w-4 h-4 inline-block align-middle">
               <LoadingSpinner size="sm" />
             </span>
-            Agregando...
-          </>
-        ) : showSuccess ? (
-          <>
+          ) : showSuccess ? (
             <Check size={iconSizes[size]} />
-            ¡Agregado!
-          </>
-        ) : isInCart ? (
-          <>
+          ) : isInCart ? (
             <Check size={iconSizes[size]} />
-            {variant === 'full' ? `En carrito (${currentQuantity})` : `(${currentQuantity})`}
-          </>
-        ) : (
-          <>
+          ) : (
             <ShoppingCart size={iconSizes[size]} />
-            {product.stock === 0 ? 'Sin stock' : (variant === 'simple' ? 'Agregar' : 'Agregar al carrito')}
-          </>
-        )}
-      </button>
+          )
+        }
+        text={
+          isAdding ? 'Agregando...' :
+          showSuccess ? '¡Agregado!' :
+          isInCart ? (variant === 'full' ? `En carrito (${currentQuantity})` : `(${currentQuantity})`) :
+          (product.stock === 0 ? 'Sin stock' : (variant === 'simple' ? 'Agregar' : 'Agregar al carrito'))
+        }
+      />
       
       {isInCart && !showSuccess && variant === 'full' && (
         <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">

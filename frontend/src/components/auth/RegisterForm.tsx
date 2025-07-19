@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { Eye, EyeOff, Mail, Lock, User, Shield, CheckCircle } from 'lucide-react';
+import { Button } from '../ui/Button';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface RegisterFormData {
@@ -273,14 +274,16 @@ export const RegisterForm: React.FC = () => {
                   <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-light">
                     <Lock size={16} />
                   </div>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                     className="position-absolute top-50 end-0 translate-middle-y me-2 border-0 bg-transparent text-light"
                   onClick={() => setShowPassword(!showPassword)}
                     style={{ fontSize: '1rem' }}
                 >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+                </Button>
               </div>
                 
                 {/* Password strength indicator */}
@@ -324,14 +327,16 @@ export const RegisterForm: React.FC = () => {
                   <div className="position-absolute top-50 start-0 translate-middle-y ms-2 text-light">
                     <Lock size={16} />
                   </div>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                     className="position-absolute top-50 end-0 translate-middle-y me-2 border-0 bg-transparent text-light"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     style={{ fontSize: '1rem' }}
                 >
                     {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+                </Button>
               </div>
                 
                 {/* Password match indicator */}
@@ -357,23 +362,15 @@ export const RegisterForm: React.FC = () => {
             </div>
 
               {/* Sign Up Button */}
-              <button
+              <Button
                 type="submit"
-                className="btn btn-lg w-100 text-white fw-medium mb-2"
+                variant="primary"
+                fullWidth
                 disabled={isLoading}
-                style={{ ...registerStyles.button, backgroundColor: "#DC2626", border: "none" }}
-              >
-                {isLoading ? (
-                  <div className="d-flex align-items-center justify-content-center">
-                    <div className="spinner-border spinner-border-sm me-2" role="status" style={{ width: 16, height: 16 }}>
-                      <span className="visually-hidden">Cargando...</span>
-                    </div>
-                    Creando cuenta...
-            </div>
-                ) : (
-                  'Crear cuenta'
-                )}
-              </button>
+                isLoading={isLoading}
+                text={isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
+                style={{ ...registerStyles.button, border: "none" }}
+              />
 
               {/* Sign In Link */}
               <div className="text-center" style={registerStyles.link}>
